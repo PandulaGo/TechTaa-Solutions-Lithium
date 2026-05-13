@@ -1,0 +1,97 @@
+const API_BASE = '/api';
+
+async function request<T>(url: string, options?: RequestInit): Promise<T> {
+  const res = await fetch(`${API_BASE}${url}`, {
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    ...options,
+  });
+  if (!res.ok) throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+  if (res.status === 204) return undefined as T;
+  return res.json();
+}
+
+export const api = {
+  // Endpoints
+  getEndpoints: (collectionId?: number) =>
+    request<any[]>(`/endpoints${collectionId ? `?collectionId=${collectionId}` : ''}`),
+
+  getEndpoint: (id: number) => request<any>(`/endpoints/${id}`),
+
+  createEndpoint: (data: any) =>
+    request<any>('/endpoints', { method: 'POST', body: JSON.stringify(data) }),
+
+  updateEndpoint: (id: number, data: any) =>
+    request<any>(`/endpoints/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+
+  deleteEndpoint: (id: number) =>
+    request<void>(`/endpoints/${id}`, { method: 'DELETE' }),
+
+  runEndpoint: (id: number) =>
+    request<any>(`/endpoints/${id}/run`, { method: 'POST' }),
+
+  bulkRun: (endpointIds: number[]) =>
+    request<any[]>('/endpoints/bulk-run', { method: 'POST', body: JSON.stringify({ endpointIds }) }),
+
+  exportEndpoints: (ids: number[]) =>
+    request<any>(`/endpoints/export?ids=${ids.join(',')}`),
+
+  importEndpoints: (data: any) =>
+    request<any>('/endpoints/import', { method: 'POST', body: JSON.stringify(data) }),
+
+  // Collections
+  getCollections: () => request<any[]>('/collections'),
+
+  getCollection: (id: number) => request<any>(`/collections/${id}`),
+
+  createCollection: (data: any) =>
+    request<any>('/collections', { method: 'POST', body: JSON.stringify(data) }),
+
+  updateCollection: (id: number, data: any) =>
+    request<any>(`/collections/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+
+  deleteCollection: (id: number) =>
+    request<void>(`/collections/${id}`, { method: 'DELETE' }),
+
+  // Schedules
+  getSchedules: (endpointId?: number) =>
+    request<any[]>(`/schedules${endpointId ? `?endpointId=${endpointId}` : ''}`),
+
+  createSchedule: (endpointId: number, data: any) =>
+    request<any>(`/schedules?endpointId=${endpointId}`, { method: 'POST', body: JSON.stringify(data) }),
+
+  updateSchedule: (id: number, data: any) =>
+    request<any>(`/schedules/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+
+  deleteSchedule: (id: number) =>
+    request<void>(`/schedules/${id}`, { method: 'DELETE' }),
+
+  // Validation Rules
+  getValidationRules: (endpointId?: number) =>
+    request<any[]>(`/validation-rules${endpointId ? `?endpointId=${endpointId}` : ''}`),
+
+  createValidationRule: (endpointId: number, data: any) =>
+    request<any>(`/validation-rules?endpointId=${endpointId}`, { method: 'POST', body: JSON.stringify(data) }),
+
+  updateValidationRule: (id: number, data: any) =>
+    request<any>(`/validation-rules/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+
+  deleteValidationRule: (id: number) =>
+    request<void>(`/validation-rules/${id}`, { method: 'DELETE' }),
+
+  // Results & Dashboard
+  getResults: (params?: { endpointId?: number; page?: number; pageSize?: number; isSuccess?: boolean; from?: string; to?: string }) => {
+    const sp = new URLSearchParams();
+    if (params?.endpointId) sp.set('endpointId', String(params.endpointId));
+    if (params?.page) sp.set('page', String(params.page));
+    if (params?.pageSize) sp.set('pageSize', String(params.pageSize));
+    if (params?.isSuccess !== undefined) sp.set('isSuccess', String(params.isSuccess));
+    if (params?.from) sp.set('from', params.from);
+    if (params?.to) sp.set('to', params.to);
+    const qs = sp.toString();
+    return request<any[]>(`/results${qs ? '?' + qs : ''}`);
+  },
+
+  getResult: (id: number) => request<any>(`/results/${id}`),
+
+  getDashboard: () => request<any>('/dashboard'),
+};
