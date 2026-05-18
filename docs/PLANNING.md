@@ -8,7 +8,7 @@ A Postman-like application for creating, scheduling, monitoring, and validating 
 
 | Layer      | Choice                                      |
 | ---------- | ------------------------------------------- |
-| Backend    | ASP.NET Core 8 Web API                      |
+| Backend    | ASP.NET Core 10 Web API                     |
 | Frontend   | React 18 + TypeScript + Tailwind CSS (Vite) |
 | Database   | SQLite + Entity Framework Core              |
 | Scheduling | `BackgroundService` + `PeriodicTimer`       |
@@ -51,21 +51,27 @@ LithiumApp/
 │   ├── src/
 │   │   ├── components/   (reusable UI)
 │   │   ├── pages/        (route-level pages)
+│   │   │   ├── DashboardPage.tsx
+│   │   │   ├── EndpointsPage.tsx
+│   │   │   ├── SchedulesPage.tsx
+│   │   │   ├── ValidationRulesPage.tsx
+│   │   │   ├── ResultsPage.tsx
+│   │   │   ├── ExportImportPage.tsx
+│   │   │   └── ReferencePage.tsx
 │   │   ├── services/     (API client layer)
-│   │   ├── hooks/        (custom React hooks)
-│   │   ├── types/        (TypeScript interfaces)
-│   │   ├── utils/        (helpers)
+│   │   ├── types/         (TypeScript interfaces)
 │   │   ├── App.tsx
 │   │   └── main.tsx
-│   ├── public/
 │   ├── index.html
 │   ├── package.json
 │   ├── tailwind.config.js
-│   ├── postcss.config.js
 │   ├── vite.config.ts
 │   └── tsconfig.json
-└── docs/
-    └── PLANNING.md
+├── docs/
+│   ├── PLANNING.md
+│   └── FRONTEND.md
+├── start-backend.bat
+└── start-frontend.bat
 ```
 
 ---
@@ -263,6 +269,15 @@ ScheduleRunner tick → every 1 second
 - Select endpoints → export as JSON (includes nested schedules, rules)
 - Import from JSON file → create all entities
 - Duplicate detection on import
+- Sample JSON format template shown inline for reference
+
+### 7. Reference
+- Full field reference table for import JSON format
+- All 19 fields documented with required/optional, types, descriptions, valid options
+- Validation rule types deep-dive with expandable detail cards
+- Comparison types table with per-rule-type applicability
+- Auth config format examples for all 5 auth types (Bearer, Basic, API Key, OAuth2, None)
+- Full sample import JSON (collapsible) with 2 complete endpoint examples
 
 ---
 
@@ -272,6 +287,35 @@ ScheduleRunner tick → every 1 second
 - Results are stored per-endpoint in `ApiResults`
 - Dashboard updates to reflect latest pass/fail for each
 - Each endpoint runs independently, concurrency controlled by `SemaphoreSlim`
+
+---
+
+## Port Configuration
+
+| Service         | HTTP Port | HTTPS Port |
+| --------------- | --------- | ---------- |
+| Backend API     | 10021     | 10022      |
+| Frontend (Vite) | 10025     | —          |
+
+Vite proxies `/api/*` requests to `http://localhost:10021` in development.
+
+---
+
+## Running the Application
+
+### Scripts
+```
+start-backend.bat     → launches backend on :10021
+start-frontend.bat    → launches frontend on :10025
+```
+
+### Manual
+```
+Terminal 1:  cd backend/LithiumApp.Api && dotnet run
+Terminal 2:  cd frontend && npm run dev
+```
+
+Open `http://localhost:10025` in your browser.
 
 ---
 

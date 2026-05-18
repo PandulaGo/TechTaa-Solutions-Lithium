@@ -5,6 +5,7 @@ import SchedulesPage from './pages/SchedulesPage';
 import ValidationRulesPage from './pages/ValidationRulesPage';
 import ResultsPage from './pages/ResultsPage';
 import ExportImportPage from './pages/ExportImportPage';
+import ReferencePage from './pages/ReferencePage';
 
 const navItems = [
   { to: '/', label: 'Dashboard', icon: '◉' },
@@ -13,6 +14,7 @@ const navItems = [
   { to: '/validation', label: 'Validation', icon: '✓' },
   { to: '/results', label: 'Results', icon: '☰' },
   { to: '/export', label: 'Export/Import', icon: '⇅' },
+  { to: '/reference', label: 'Reference', icon: '?' },
 ];
 
 function App() {
@@ -52,6 +54,7 @@ function App() {
             <Route path="/validation" element={<ValidationRulesPage />} />
             <Route path="/results" element={<ResultsPage />} />
             <Route path="/export" element={<ExportImportPage />} />
+            <Route path="/reference" element={<ReferencePage />} />
           </Routes>
         </main>
       </div>

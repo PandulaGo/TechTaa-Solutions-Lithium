@@ -21,7 +21,7 @@
 ## 2. Navigation & Layout
 
 ### Sidebar (fixed, 224px width)
-- **6 navigation items** with Unicode icons:
+- **7 navigation items** with Unicode icons:
   | # | Icon | Label           | Route          |
   |---|------|-----------------|----------------|
   | 1 | ◉    | Dashboard       | `/`            |
@@ -30,6 +30,7 @@
   | 4 | ✓    | Validation      | `/validation`  |
   | 5 | ☰    | Results         | `/results`     |
   | 6 | ⇅    | Export/Import   | `/export`      |
+  | 7 | ?    | Reference       | `/reference`   |
 
 - **Active state**: Purple background with purple text (`bg-purple-900/50 text-purple-300`)
 - **Inactive state**: Gray text, hover highlights to lighter gray
@@ -356,7 +357,51 @@ Each example shows every possible field so users can copy and edit their own imp
 
 ---
 
-## 9. Reusable Components
+## 9. Reference Page
+
+**Route**: `/reference`  
+**Purpose**: Complete documentation of the import JSON format for building import files
+
+### Field Reference Table
+Full-width table with columns: **Field**, **Required** (Yes/No), **Type**, **Description**, **Valid Options/Examples**
+
+Covers all 19 fields:
+- Root: `name`, `description`, `method`, `url`, `headers`, `body`, `bodyType`, `authType`, `authConfig`, `collectionName`
+- Schedule sub-object: `schedule`, `schedule.intervalSeconds`, `schedule.isEnabled`
+- Validation rule sub-array: `validationRules`, `validationRules[].ruleType`, `validationRules[].expectedValue`, `validationRules[].comparisonType`, `validationRules[].order`, `validationRules[].isEnabled`
+
+### Validation Rule Types — Detailed
+5 expandable cards, one per rule type. Clicking expands a description:
+- **StatusCode**: Checks HTTP status code matches expected
+- **ResponseTime**: Checks latency vs threshold
+- **JsonPath**: Queries JSON body with JSONPath syntax (`$.path = value`)
+- **BodyContains**: Checks substring presence in response body
+- **HeaderExists**: Checks response header exists (case-insensitive)
+
+### Comparison Types Table
+| Type | Meaning | Valid for Rule Types |
+|---|---|---|
+| Equals | Exact match | All |
+| NotEquals | Must not match | All |
+| GreaterThan | > expected | StatusCode, ResponseTime |
+| LessThan | < expected | StatusCode, ResponseTime |
+| Contains | Contains substring | JsonPath, BodyContains |
+| NotContains | Does not contain | JsonPath, BodyContains |
+
+### authConfig Formats
+5 cards showing the JSON config per auth type, plus the behavior description:
+- **None**: `null`
+- **Bearer**: `{"token":"eyJ..."}` → adds `Authorization: Bearer` header
+- **Basic**: `{"username":"admin","password":"pass"}` → Base64 encodes, adds `Authorization: Basic` header
+- **API Key**: `{"key":"X-API-Key","value":"sk-abc","placement":"Header"}` → adds as header or query param
+- **OAuth2**: `{"access_token":"ya29..."}` → adds `Authorization: Bearer` header
+
+### Full Sample JSON (collapsible)
+Toggle section showing a complete 2-endpoint import file with GET and POST examples.
+
+---
+
+## 10. Reusable Components
 
 ### KeyValueEditor
 - **Props**: `pairs: KeyValue[]`, `onChange: (pairs: KeyValue[]) => void`
@@ -384,7 +429,7 @@ Each example shows every possible field so users can copy and edit their own imp
 
 ---
 
-## 10. API Client Layer (`services/api.ts`)
+## 11. API Client Layer (`services/api.ts`)
 
 ### Architecture
 - Single `API_BASE = '/api'` constant
@@ -422,7 +467,7 @@ Each example shows every possible field so users can copy and edit their own imp
 
 ---
 
-## 11. Type Definitions (`types/index.ts`)
+## 12. Type Definitions (`types/index.ts`)
 
 All TypeScript interfaces mirror the backend DTOs and entity models:
 
@@ -452,7 +497,7 @@ ExportPayload     → endpoints: ExportedEndpoint[]
 
 ---
 
-## 12. Error Handling & States
+## 13. Error Handling & States
 
 ### Empty States
 - All tables: centered "No X yet" message in gray-600 when array is empty
@@ -477,7 +522,7 @@ ExportPayload     → endpoints: ExportedEndpoint[]
 
 ---
 
-## 13. Data Flow Diagram
+## 14. Data Flow Diagram
 
 ```
 ┌─────────────────────────────────────────────────────────────────────┐
@@ -496,7 +541,7 @@ ExportPayload     → endpoints: ExportedEndpoint[]
 │                                                     │               │
 ├─────────────────────────────────────────────────────│───────────────┤
 │                                                     ▼               │
-│  ASP.NET Core Web API                         localhost:60001       │
+│  ASP.NET Core Web API                         localhost:10021       │
 │         │                                                           │
 │         ▼                                                           │
 │  Controller → Service → EF Core → SQLite (lithium.db)               │
@@ -522,7 +567,7 @@ ExportPayload     → endpoints: ExportedEndpoint[]
 
 ---
 
-## 14. Backend Execution Flow (for context)
+## 15. Backend Execution Flow (for context)
 
 ```
 ScheduleRunner tick → every 1 second
@@ -545,22 +590,22 @@ ScheduleRunner tick → every 1 second
 
 ---
 
-## 15. Port Configuration
+## 16. Port Configuration
 
-| Service   | Port    | URL                         |
-| --------- | ------- | --------------------------- |
-| Backend   | 60001   | `http://localhost:60001`    |
-| Frontend  | 60101   | `http://localhost:60101`    |
-| Proxy     | Vite    | `/api` → `localhost:60001`  |
+| Service   | HTTP    | HTTPS   | URL                            |
+| --------- | ------- | ------- | ------------------------------ |
+| Backend   | 10021   | 10022   | `http://localhost:10021`       |
+| Frontend  | 10025   | —       | `http://localhost:10025`       |
+| Proxy     | Vite    | —       | `/api` → `localhost:10021`     |
 
 ---
 
-## 16. Running the Application
+## 17. Running the Application
 
 ### Option A: Scripts
 ```
-start-backend.bat     → launches backend on :60001
-start-frontend.bat    → launches frontend on :60101
+start-backend.bat     → launches backend on :10021
+start-frontend.bat    → launches frontend on :10025
 ```
 
 ### Option B: Manual
