@@ -157,17 +157,17 @@ export default function ReferencePage() {
 
   return (
     <div className="space-y-6">
-      <h2 className="text-xl font-bold text-gray-100">Import JSON Reference</h2>
-      <p className="text-sm text-gray-400">
+      <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">Import JSON Reference</h2>
+      <p className="text-sm text-gray-600 dark:text-gray-400">
         Every field in the import JSON is documented below. Use this as a reference when
         building your own import files.
       </p>
 
       {/* Field reference table */}
-      <div className="bg-gray-900 rounded-lg border border-gray-800 overflow-hidden">
+      <div className="bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-800 overflow-hidden">
         <table className="w-full text-sm">
           <thead>
-            <tr className="border-b border-gray-800 text-left text-gray-400 bg-gray-900 sticky top-0">
+            <tr className="border-b border-gray-200 dark:border-gray-800 text-left text-gray-600 dark:text-gray-400 bg-white dark:bg-gray-900 sticky top-0">
               <th className="p-3 w-48">Field</th>
               <th className="p-3 w-16">Req</th>
               <th className="p-3 w-24">Type</th>
@@ -177,26 +177,26 @@ export default function ReferencePage() {
           </thead>
           <tbody>
             {fields.map((f) => (
-              <tr key={f.field} className="border-b border-gray-800/50 hover:bg-gray-800/30 align-top">
+              <tr key={f.field} className="border-b border-gray-200 dark:border-gray-800/50 hover:bg-gray-100/50 dark:hover:bg-gray-800/30 align-top">
                 <td className="p-3 font-mono text-purple-400 text-xs">{f.field}</td>
                 <td className="p-3">
                   {f.required ? (
                     <span className="text-red-400 text-xs font-bold">Yes</span>
                   ) : (
-                    <span className="text-gray-600 text-xs">No</span>
+                    <span className="text-gray-400 dark:text-gray-600 text-xs">No</span>
                   )}
                 </td>
-                <td className="p-3 text-gray-500 text-xs">{f.type}</td>
-                <td className="p-3 text-gray-300">{f.description}</td>
+                <td className="p-3 text-gray-500 dark:text-gray-500 text-xs">{f.type}</td>
+                <td className="p-3 text-gray-700 dark:text-gray-300">{f.description}</td>
                 <td className="p-3">
                   {f.options ? (
                     <ul className="space-y-0.5">
                       {f.options.map((opt, i) => (
-                        <li key={i} className="text-xs font-mono text-gray-400">{opt}</li>
+                        <li key={i} className="text-xs font-mono text-gray-600 dark:text-gray-400">{opt}</li>
                       ))}
                     </ul>
                   ) : (
-                    <span className="text-gray-600 text-xs">—</span>
+                    <span className="text-gray-400 dark:text-gray-600 text-xs">—</span>
                   )}
                 </td>
               </tr>
@@ -206,21 +206,21 @@ export default function ReferencePage() {
       </div>
 
       {/* Rule types deep dive */}
-      <div className="bg-gray-900 rounded-lg border border-gray-800 p-4">
-        <h3 className="text-sm font-semibold text-gray-300 mb-3">Validation Rule Types — Details</h3>
+      <div className="bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-800 p-4">
+        <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">Validation Rule Types — Details</h3>
         <div className="space-y-2">
           {Object.entries(ruleTypeOptions).map(([type, desc]) => (
             <div
               key={type}
-              className="border border-gray-800 rounded cursor-pointer"
+              className="border border-gray-200 dark:border-gray-800 rounded cursor-pointer"
               onClick={() => setExpandedType(expandedType === type ? null : type)}
             >
               <div className="flex justify-between items-center px-3 py-2">
                 <span className="text-sm font-mono text-purple-400">{type}</span>
-                <span className="text-xs text-gray-500">{expandedType === type ? '▲' : '▼'}</span>
+                <span className="text-xs text-gray-500 dark:text-gray-500">{expandedType === type ? '▲' : '▼'}</span>
               </div>
               {expandedType === type && (
-                <div className="px-3 pb-3 text-sm text-gray-400 border-t border-gray-800 pt-2">
+                <div className="px-3 pb-3 text-sm text-gray-600 dark:text-gray-400 border-t border-gray-200 dark:border-gray-800 pt-2">
                   {desc}
                 </div>
               )}
@@ -230,93 +230,93 @@ export default function ReferencePage() {
       </div>
 
       {/* Comparison types */}
-      <div className="bg-gray-900 rounded-lg border border-gray-800 p-4">
-        <h3 className="text-sm font-semibold text-gray-300 mb-3">Comparison Types</h3>
+      <div className="bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-800 p-4">
+        <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">Comparison Types</h3>
         <table className="w-full text-sm">
           <thead>
-            <tr className="border-b border-gray-800 text-left text-gray-400">
+            <tr className="border-b border-gray-200 dark:border-gray-800 text-left text-gray-600 dark:text-gray-400">
               <th className="p-2">Type</th>
               <th className="p-2">Meaning</th>
               <th className="p-2">Valid for Rule Types</th>
             </tr>
           </thead>
           <tbody>
-            <tr className="border-b border-gray-800/50">
+            <tr className="border-b border-gray-200 dark:border-gray-800/50">
               <td className="p-2 font-mono text-purple-400 text-xs">Equals</td>
-              <td className="p-2 text-gray-400">Actual value must match expected value exactly</td>
-              <td className="p-2 text-xs text-gray-500">All</td>
+              <td className="p-2 text-gray-600 dark:text-gray-400">Actual value must match expected value exactly</td>
+              <td className="p-2 text-xs text-gray-500 dark:text-gray-500">All</td>
             </tr>
-            <tr className="border-b border-gray-800/50">
+            <tr className="border-b border-gray-200 dark:border-gray-800/50">
               <td className="p-2 font-mono text-purple-400 text-xs">NotEquals</td>
-              <td className="p-2 text-gray-400">Actual value must NOT match</td>
-              <td className="p-2 text-xs text-gray-500">All</td>
+              <td className="p-2 text-gray-600 dark:text-gray-400">Actual value must NOT match</td>
+              <td className="p-2 text-xs text-gray-500 dark:text-gray-500">All</td>
             </tr>
-            <tr className="border-b border-gray-800/50">
+            <tr className="border-b border-gray-200 dark:border-gray-800/50">
               <td className="p-2 font-mono text-purple-400 text-xs">GreaterThan</td>
-              <td className="p-2 text-gray-400">Actual value &gt; expected value</td>
-              <td className="p-2 text-xs text-gray-500">StatusCode, ResponseTime</td>
+              <td className="p-2 text-gray-600 dark:text-gray-400">Actual value &gt; expected value</td>
+              <td className="p-2 text-xs text-gray-500 dark:text-gray-500">StatusCode, ResponseTime</td>
             </tr>
-            <tr className="border-b border-gray-800/50">
+            <tr className="border-b border-gray-200 dark:border-gray-800/50">
               <td className="p-2 font-mono text-purple-400 text-xs">LessThan</td>
-              <td className="p-2 text-gray-400">Actual value &lt; expected value</td>
-              <td className="p-2 text-xs text-gray-500">StatusCode, ResponseTime</td>
+              <td className="p-2 text-gray-600 dark:text-gray-400">Actual value &lt; expected value</td>
+              <td className="p-2 text-xs text-gray-500 dark:text-gray-500">StatusCode, ResponseTime</td>
             </tr>
-            <tr className="border-b border-gray-800/50">
+            <tr className="border-b border-gray-200 dark:border-gray-800/50">
               <td className="p-2 font-mono text-purple-400 text-xs">Contains</td>
-              <td className="p-2 text-gray-400">Actual value must contain expected value as substring</td>
-              <td className="p-2 text-xs text-gray-500">JsonPath, BodyContains</td>
+              <td className="p-2 text-gray-600 dark:text-gray-400">Actual value must contain expected value as substring</td>
+              <td className="p-2 text-xs text-gray-500 dark:text-gray-500">JsonPath, BodyContains</td>
             </tr>
             <tr>
               <td className="p-2 font-mono text-purple-400 text-xs">NotContains</td>
-              <td className="p-2 text-gray-400">Actual value must NOT contain expected value</td>
-              <td className="p-2 text-xs text-gray-500">JsonPath, BodyContains</td>
+              <td className="p-2 text-gray-600 dark:text-gray-400">Actual value must NOT contain expected value</td>
+              <td className="p-2 text-xs text-gray-500 dark:text-gray-500">JsonPath, BodyContains</td>
             </tr>
           </tbody>
         </table>
       </div>
 
       {/* Auth config examples */}
-      <div className="bg-gray-900 rounded-lg border border-gray-800 p-4">
-        <h3 className="text-sm font-semibold text-gray-300 mb-3">authConfig — Formats Per Auth Type</h3>
+      <div className="bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-800 p-4">
+        <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">authConfig — Formats Per Auth Type</h3>
         <div className="grid grid-cols-1 gap-3">
-          <div className="bg-gray-950 border border-gray-800 rounded p-3">
+          <div className="bg-gray-50 dark:bg-gray-950 border border-gray-200 dark:border-gray-800 rounded p-3">
             <p className="text-xs text-purple-400 font-mono mb-1">None</p>
-            <pre className="text-xs text-gray-400">null</pre>
+            <pre className="text-xs text-gray-600 dark:text-gray-400">null</pre>
           </div>
-          <div className="bg-gray-950 border border-gray-800 rounded p-3">
+          <div className="bg-gray-50 dark:bg-gray-950 border border-gray-200 dark:border-gray-800 rounded p-3">
             <p className="text-xs text-purple-400 font-mono mb-1">Bearer Token</p>
-            <pre className="text-xs text-gray-400">{`{"token": "eyJhbGciOiJIUzI1NiIs..."}`}</pre>
-            <p className="text-xs text-gray-600 mt-1">Adds header: Authorization: Bearer eyJhbGciOiJIUzI1NiIs...</p>
+            <pre className="text-xs text-gray-600 dark:text-gray-400">{`{"token": "eyJhbGciOiJIUzI1NiIs..."}`}</pre>
+            <p className="text-xs text-gray-400 dark:text-gray-600 mt-1">Adds header: Authorization: Bearer eyJhbGciOiJIUzI1NiIs...</p>
           </div>
-          <div className="bg-gray-950 border border-gray-800 rounded p-3">
+          <div className="bg-gray-50 dark:bg-gray-950 border border-gray-200 dark:border-gray-800 rounded p-3">
             <p className="text-xs text-purple-400 font-mono mb-1">Basic Auth</p>
-            <pre className="text-xs text-gray-400">{`{"username": "admin", "password": "secret123"}`}</pre>
-            <p className="text-xs text-gray-600 mt-1">Base64 encodes "admin:secret123" → adds Authorization: Basic header</p>
+            <pre className="text-xs text-gray-600 dark:text-gray-400">{`{"username": "admin", "password": "secret123"}`}</pre>
+            <p className="text-xs text-gray-400 dark:text-gray-600 mt-1">Base64 encodes "admin:secret123" → adds Authorization: Basic header</p>
           </div>
-          <div className="bg-gray-950 border border-gray-800 rounded p-3">
+          <div className="bg-gray-50 dark:bg-gray-950 border border-gray-200 dark:border-gray-800 rounded p-3">
             <p className="text-xs text-purple-400 font-mono mb-1">API Key</p>
-            <pre className="text-xs text-gray-400">{`{"key": "X-API-Key", "value": "sk-abc123xyz", "placement": "Header"}`}</pre>
-            <p className="text-xs text-gray-600 mt-1">placement="Header" → adds as header. placement="Query" → adds as query parameter.</p>
+            <pre className="text-xs text-gray-600 dark:text-gray-400">{`{"key": "X-API-Key", "value": "sk-abc123xyz", "placement": "Header"}`}</pre>
+            <p className="text-xs text-gray-400 dark:text-gray-600 mt-1">placement="Header" → adds as header. placement="Query" → adds as query parameter.</p>
           </div>
-          <div className="bg-gray-950 border border-gray-800 rounded p-3">
+          <div className="bg-gray-50 dark:bg-gray-950 border border-gray-200 dark:border-gray-800 rounded p-3">
             <p className="text-xs text-purple-400 font-mono mb-1">OAuth 2.0</p>
-            <pre className="text-xs text-gray-400">{`{"access_token": "ya29.a0AfH6SM..."}`}</pre>
-            <p className="text-xs text-gray-600 mt-1">Adds header: Authorization: Bearer ya29.a0AfH6SM...</p>
+            <pre className="text-xs text-gray-600 dark:text-gray-400">{`{"access_token": "ya29.a0AfH6SM..."}`}</pre>
+            <p className="text-xs text-gray-400 dark:text-gray-600 mt-1">Adds header: Authorization: Bearer ya29.a0AfH6SM...</p>
           </div>
         </div>
       </div>
 
       {/* Full sample */}
-      <div className="bg-gray-900 rounded-lg border border-gray-800 p-4">
+      <div className="bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-800 p-4">
         <div
           className="flex justify-between items-center cursor-pointer"
           onClick={() => setShowSample(!showSample)}
         >
-          <h3 className="text-sm font-semibold text-gray-300">Full Sample Import JSON</h3>
-          <span className="text-xs text-gray-500">{showSample ? '▲' : '▼'}</span>
+          <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300">Full Sample Import JSON</h3>
+          <span className="text-xs text-gray-500 dark:text-gray-500">{showSample ? '▲' : '▼'}</span>
         </div>
         {showSample && (
-          <pre className="bg-gray-950 border border-gray-700 rounded p-4 text-xs text-gray-300 overflow-auto max-h-[500px] whitespace-pre leading-relaxed mt-3">
+          <pre className="bg-gray-50 dark:bg-gray-950 border border-gray-300 dark:border-gray-700 rounded p-4 text-xs text-gray-700 dark:text-gray-300 overflow-auto max-h-[500px] whitespace-pre leading-relaxed mt-3">
 {`{
   "endpoints": [
     {

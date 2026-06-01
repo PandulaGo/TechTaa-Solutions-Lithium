@@ -31,13 +31,13 @@ export default function KeyValueEditor({ pairs, onChange }: Props) {
       {kvs.map((kv, i) => (
         <div key={i} className="flex gap-2">
           <input
-            className="flex-1 bg-gray-800 border border-gray-700 rounded px-2 py-1 text-xs"
+            className="flex-1 bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded px-2 py-1 text-xs"
             placeholder="Key"
             value={kv.key}
             onChange={(e) => update(i, 'key', e.target.value)}
           />
           <input
-            className="flex-1 bg-gray-800 border border-gray-700 rounded px-2 py-1 text-xs"
+            className="flex-1 bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded px-2 py-1 text-xs"
             placeholder="Value"
             value={kv.value}
             onChange={(e) => update(i, 'value', e.target.value)}

@@ -41,7 +41,7 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-6">
-      <h2 className="text-xl font-bold text-gray-100">Dashboard</h2>
+      <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">Dashboard</h2>
 
       {stats && (
         <div className="grid grid-cols-4 gap-4">
@@ -52,10 +52,10 @@ export default function DashboardPage() {
         </div>
       )}
 
-      <div className="bg-gray-900 rounded-lg border border-gray-800 overflow-hidden">
+      <div className="bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-800 overflow-hidden">
         <table className="w-full text-sm">
           <thead>
-            <tr className="border-b border-gray-800 text-left text-gray-400">
+            <tr className="border-b border-gray-200 dark:border-gray-800 text-left text-gray-600 dark:text-gray-400">
               <th className="p-3">Name</th>
               <th className="p-3">Method</th>
               <th className="p-3">URL</th>
@@ -69,12 +69,12 @@ export default function DashboardPage() {
             {endpoints.map((ep) => {
               const result = latestResults.get(ep.id);
               return (
-                <tr key={ep.id} className="border-b border-gray-800/50 hover:bg-gray-800/30">
+                <tr key={ep.id} className="border-b border-gray-200 dark:border-gray-800/50 hover:bg-gray-100/50 dark:hover:bg-gray-800/30">
                   <td className="p-3">{ep.name}</td>
                   <td className="p-3">
                     <MethodBadge method={ep.method} />
                   </td>
-                  <td className="p-3 text-gray-400 truncate max-w-48">{ep.url}</td>
+                  <td className="p-3 text-gray-600 dark:text-gray-400 truncate max-w-48">{ep.url}</td>
                   <td className="p-3">
                     {result ? (
                       result.isSuccess ? (
@@ -83,20 +83,20 @@ export default function DashboardPage() {
                         <span className="text-red-400">✗ Fail</span>
                       )
                     ) : (
-                      <span className="text-gray-600">—</span>
+                      <span className="text-gray-400 dark:text-gray-600">—</span>
                     )}
                   </td>
                   <td className="p-3">
                     {result ? (
                       <StatusCodeBadge code={result.statusCode} />
                     ) : (
-                      <span className="text-gray-600">—</span>
+                      <span className="text-gray-400 dark:text-gray-600">—</span>
                     )}
                   </td>
-                  <td className="p-3 text-gray-400">
+                  <td className="p-3 text-gray-600 dark:text-gray-400">
                     {result ? `${result.responseTimeMs} ms` : '—'}
                   </td>
-                  <td className="p-3 text-gray-500 text-xs">
+                  <td className="p-3 text-gray-500 dark:text-gray-500 text-xs">
                     {result ? new Date(result.executedAt).toLocaleTimeString() : 'Never'}
                   </td>
                 </tr>
@@ -104,7 +104,7 @@ export default function DashboardPage() {
             })}
             {endpoints.length === 0 && (
               <tr>
-                <td colSpan={7} className="p-6 text-center text-gray-600">No endpoints yet</td>
+                <td colSpan={7} className="p-6 text-center text-gray-400 dark:text-gray-600">No endpoints yet</td>
               </tr>
             )}
           </tbody>
@@ -116,8 +116,8 @@ export default function DashboardPage() {
 
 function StatCard({ label, value, color }: { label: string; value: number | string; color: string }) {
   return (
-    <div className="bg-gray-900 border border-gray-800 rounded-lg p-4">
-      <p className="text-xs text-gray-500">{label}</p>
+    <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg p-4">
+      <p className="text-xs text-gray-500 dark:text-gray-500">{label}</p>
       <p className={`text-2xl font-bold ${color}`}>{value}</p>
     </div>
   );
@@ -132,7 +132,7 @@ function MethodBadge({ method }: { method: string }) {
     PATCH: 'bg-purple-900/50 text-purple-400 border-purple-700',
   };
   return (
-    <span className={`text-xs px-2 py-0.5 rounded border ${colors[method] || 'bg-gray-800 text-gray-400'}`}>
+    <span className={`text-xs px-2 py-0.5 rounded border ${colors[method] || 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400'}`}>
       {method}
     </span>
   );
