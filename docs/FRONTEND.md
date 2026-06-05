@@ -14,7 +14,7 @@
 | Build Tool     | Vite 8                                      |
 | Routing        | React Router v6 (client-side SPA routing)   |
 | HTTP Client    | Native `fetch` (no axios)                   |
-| Color Scheme   | Dark theme (gray-950/900/800 palette)       |
+| Color Scheme   | Light + Dark mode (via ThemeContext, persisted to localStorage)   |
 
 ---
 
@@ -541,10 +541,10 @@ ExportPayload     → endpoints: ExportedEndpoint[]
 │                                                     │               │
 ├─────────────────────────────────────────────────────│───────────────┤
 │                                                     ▼               │
-│  ASP.NET Core Web API                         localhost:10021       │
+│  Express API Server                            localhost:10021       │
 │         │                                                           │
 │         ▼                                                           │
-│  Controller → Service → EF Core → SQLite (lithium.db)               │
+│  Route Handler → Service → better-sqlite3 → lithium.db              │
 │         │                                                           │
 │         ▼                                                           │
 │  JSON Response                                                      │
@@ -572,18 +572,18 @@ ExportPayload     → endpoints: ExportedEndpoint[]
 ```
 ScheduleRunner tick → every 1 second
   ├─ Find all enabled schedules where (now >= NextRunAt)
-  ├─ For each due endpoint (max 5 concurrent via SemaphoreSlim):
-  │   ├─ ApiExecutionService:
+  ├─ For each due endpoint (max 5 concurrent):
+  │   ├─ apiExecution.ts:
   │   │   ├─ Apply auth (Bearer/Basic/API Key/OAuth2)
   │   │   ├─ Apply headers from JSON config
   │   │   ├─ Apply body with content-type
   │   │   ├─ Send HTTP request (30s timeout)
   │   │   └─ Capture: status code, latency, response headers/body
-  │   ├─ ValidationService:
+  │   ├─ validation.ts:
   │   │   ├─ Load all enabled rules for endpoint (ordered)
   │   │   ├─ Evaluate each rule against response
   │   │   └─ Determine pass/fail (all rules must pass)
-  │   ├─ Save ApiResult to database
+  │   ├─ Save ApiResult to SQLite
   │   └─ Update Schedule.LastRunAt / NextRunAt
   └─ Loop
 ```

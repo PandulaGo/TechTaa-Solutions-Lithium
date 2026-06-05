@@ -1,6 +1,6 @@
 # Lithium — API Testing & Monitoring Application
 
-A Postman-like application for creating, scheduling, monitoring, and validating HTTP APIs. Built with .NET, React, TypeScript, Tailwind CSS, and SQLite.
+A Postman-like application for creating, scheduling, monitoring, and validating HTTP APIs. Built with Node.js, Express, React, TypeScript, Tailwind CSS, and SQLite.
 
 ---
 
@@ -8,11 +8,10 @@ A Postman-like application for creating, scheduling, monitoring, and validating 
 
 | Layer      | Choice                                      |
 | ---------- | ------------------------------------------- |
-| Backend    | ASP.NET Core 10 Web API                     |
+| Backend    | Express + Node.js (TypeScript)              |
 | Frontend   | React 18 + TypeScript + Tailwind CSS (Vite) |
-| Database   | SQLite + Entity Framework Core              |
-| Scheduling | `BackgroundService` + `PeriodicTimer`       |
-| Testing    | xUnit (backend), Vitest (frontend)          |
+| Database   | SQLite (better-sqlite3)                     |
+| Scheduling | `setInterval` background service            |
 
 ---
 
@@ -20,37 +19,27 @@ A Postman-like application for creating, scheduling, monitoring, and validating 
 
 ```
 LithiumApp/
-├── backend/
-│   ├── LithiumApp.Api/
-│   │   ├── Controllers/
-│   │   │   ├── ApiEndpointsController.cs
-│   │   │   ├── CollectionsController.cs
-│   │   │   ├── SchedulesController.cs
-│   │   │   ├── ValidationRulesController.cs
-│   │   │   ├── ApiResultsController.cs
-│   │   │   └── DashboardController.cs
-│   │   ├── Models/
-│   │   │   ├── ApiEndpoint.cs
-│   │   │   ├── Collection.cs
-│   │   │   ├── Schedule.cs
-│   │   │   ├── ApiResult.cs
-│   │   │   └── ValidationRule.cs
-│   │   ├── Data/
-│   │   │   ├── AppDbContext.cs
-│   │   │   └── Migrations/
-│   │   ├── DTOs/
-│   │   ├── Services/
-│   │   │   ├── ApiExecutionService.cs
-│   │   │   ├── ValidationService.cs
-│   │   │   ├── ScheduleRunner.cs
-│   │   │   └── ExportImportService.cs
-│   │   ├── Program.cs
-│   │   └── appsettings.json
-│   └── LithiumApp.sln
 ├── frontend/
+│   ├── server/
+│   │   ├── index.ts                    # Express entry point
+│   │   ├── db.ts                       # SQLite setup + schema
+│   │   ├── types.ts                    # Shared TypeScript types
+│   │   ├── services/
+│   │   │   ├── apiExecution.ts         # HTTP request execution
+│   │   │   ├── validation.ts           # Rule validation logic
+│   │   │   ├── scheduleRunner.ts       # Background scheduler
+│   │   │   └── exportImport.ts         # JSON export/import
+│   │   └── routes/
+│   │       ├── endpoints.ts            # CRUD, run, bulk-run, export/import
+│   │       ├── collections.ts          # CRUD, endpoints by collection
+│   │       ├── schedules.ts            # CRUD
+│   │       ├── validationRules.ts      # CRUD
+│   │       ├── results.ts              # List, get by id
+│   │       └── dashboard.ts            # Aggregate stats
 │   ├── src/
-│   │   ├── components/   (reusable UI)
-│   │   ├── pages/        (route-level pages)
+│   │   ├── components/                 # Reusable UI components
+│   │   │   └── KeyValueEditor.tsx
+│   │   ├── pages/                      # Route-level pages
 │   │   │   ├── DashboardPage.tsx
 │   │   │   ├── EndpointsPage.tsx
 │   │   │   ├── SchedulesPage.tsx
@@ -58,20 +47,23 @@ LithiumApp/
 │   │   │   ├── ResultsPage.tsx
 │   │   │   ├── ExportImportPage.tsx
 │   │   │   └── ReferencePage.tsx
-│   │   ├── services/     (API client layer)
-│   │   ├── types/         (TypeScript interfaces)
-│   │   ├── App.tsx
-│   │   └── main.tsx
+│   │   ├── services/                   # API client layer
+│   │   │   └── api.ts
+│   │   ├── types/                      # TypeScript interfaces
+│   │   │   └── index.ts
+│   │   ├── App.tsx                     # Layout + routing
+│   │   ├── main.tsx                    # React entry point
+│   │   ├── ThemeContext.tsx            # Dark/light mode
+│   │   └── index.css                   # Tailwind CSS entry
 │   ├── index.html
 │   ├── package.json
-│   ├── tailwind.config.js
 │   ├── vite.config.ts
 │   └── tsconfig.json
 ├── docs/
 │   ├── PLANNING.md
 │   └── FRONTEND.md
-├── start-backend.bat
-└── start-frontend.bat
+├── start-backend.bat                   # Starts API + Web UI
+└── start-frontend.bat                  # Web UI only
 ```
 
 ---
@@ -221,7 +213,7 @@ Tokens and secrets are encrypted using ASP.NET Core Data Protection API before s
 ```
 ScheduleRunner tick → every 1 second
   ├─ Find all enabled schedules where (now >= NextRunAt)
-  ├─ For each due endpoint (in parallel):
+  ├─ For each due endpoint (max 5 concurrent):
   │   ├─ ApiExecutionService: apply auth, send HTTP request, capture response
   │   ├─ ValidationService: run all enabled rules, determine pass/fail
   │   ├─ Save ApiResult to database
@@ -305,14 +297,17 @@ Vite proxies `/api/*` requests to `http://localhost:10021` in development.
 
 ### Scripts
 ```
-start-backend.bat     → launches backend on :10021
-start-frontend.bat    → launches frontend on :10025
+start-backend.bat     → launches API + Web UI (Express on :10021, Vite on :10025)
+start-frontend.bat    → launches Web UI only (Vite on :10025)
 ```
 
 ### Manual
 ```
-Terminal 1:  cd backend/LithiumApp.Api && dotnet run
-Terminal 2:  cd frontend && npm run dev
+cd frontend
+npm run dev        → starts both Express API + Vite dev server
+npm run dev:api    → starts Express API only
+npm run dev:web    → starts Vite dev server only
+npm start          → starts Express API only (for production)
 ```
 
 Open `http://localhost:10025` in your browser.
