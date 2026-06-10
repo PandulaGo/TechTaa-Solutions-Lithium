@@ -1,17 +1,24 @@
 import { useEffect, useState } from 'react';
 import { api } from '../services/api';
 import type { ValidationRule, ApiEndpoint } from '../types';
+import Spinner from '../components/Spinner';
+import { useToast } from '../ToastContext';
+import { useConfirmDialog, ConfirmDialog } from '../components/ConfirmDialog';
 
 export default function ValidationRulesPage() {
   const [rules, setRules] = useState<ValidationRule[]>([]);
   const [endpoints, setEndpoints] = useState<ApiEndpoint[]>([]);
+  const [loading, setLoading] = useState(true);
   const [filterEndpointId, setFilterEndpointId] = useState<number | undefined>();
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({ endpointId: 0, ruleType: 'StatusCode', expectedValue: '200', comparisonType: 'Equals', order: 0, isEnabled: true });
+  const { showToast } = useToast();
+  const { confirm: confirmDialog, state: confirmState } = useConfirmDialog();
 
   useEffect(() => { loadAll(); }, []);
 
   const loadAll = async () => {
+    setLoading(true);
     try {
       const [rls, eps] = await Promise.all([
         api.getValidationRules(filterEndpointId),
@@ -20,19 +27,33 @@ export default function ValidationRulesPage() {
       setRules(Array.isArray(rls) ? rls : []);
       setEndpoints(Array.isArray(eps) ? eps : []);
     } catch (e) { console.error(e); }
+    finally { setLoading(false); }
   };
 
   const handleCreate = async () => {
     if (!form.endpointId) return;
-    await api.createValidationRule(form.endpointId, form);
-    setShowForm(false);
-    loadAll();
+    try {
+      await api.createValidationRule(form.endpointId, form);
+      showToast('Validation rule created successfully', 'success');
+      setShowForm(false);
+      loadAll();
+    } catch (e: any) {
+      console.error(e);
+      showToast(e.message || 'Failed to create rule', 'error');
+    }
   };
 
   const handleDelete = async (id: number) => {
-    if (!confirm('Delete this rule?')) return;
-    await api.deleteValidationRule(id);
-    loadAll();
+    const confirmed = await confirmDialog('Delete this validation rule?', 'Confirm Delete', { confirmText: 'Delete', cancelText: 'Cancel', variant: 'danger' });
+    if (!confirmed) return;
+    try {
+      await api.deleteValidationRule(id);
+      showToast('Validation rule deleted successfully', 'success');
+      loadAll();
+    } catch (e: any) {
+      console.error(e);
+      showToast(e.message || 'Failed to delete rule', 'error');
+    }
   };
 
   const ruleTypes = ['StatusCode', 'ResponseTime', 'JsonPath', 'BodyContains', 'HeaderExists'];
@@ -99,7 +120,9 @@ export default function ValidationRulesPage() {
         </div>
       )}
 
-      <div className="bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-800 overflow-hidden">
+      {loading ? (
+        <Spinner text="Loading rules..." />
+      ) : <div className="bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-800 overflow-hidden">
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-gray-200 dark:border-gray-800 text-left text-gray-600 dark:text-gray-400">
@@ -135,7 +158,8 @@ export default function ValidationRulesPage() {
             )}
           </tbody>
         </table>
-      </div>
+      </div>}
+      <ConfirmDialog state={confirmState} />
     </div>
   );
 }

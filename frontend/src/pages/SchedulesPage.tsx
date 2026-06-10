@@ -1,40 +1,67 @@
 import { useEffect, useState } from 'react';
 import { api } from '../services/api';
 import type { Schedule, ApiEndpoint } from '../types';
+import Spinner from '../components/Spinner';
+import { useToast } from '../ToastContext';
+import { useConfirmDialog, ConfirmDialog } from '../components/ConfirmDialog';
 
 export default function SchedulesPage() {
   const [schedules, setSchedules] = useState<Schedule[]>([]);
   const [endpoints, setEndpoints] = useState<ApiEndpoint[]>([]);
+  const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [selectedEndpoint, setSelectedEndpoint] = useState<number>(0);
   const [intervalSeconds, setIntervalSeconds] = useState(60);
+  const { showToast } = useToast();
+  const { confirm: confirmDialog, state: confirmState } = useConfirmDialog();
 
   useEffect(() => { loadAll(); }, []);
 
   const loadAll = async () => {
+    setLoading(true);
     try {
       const [sch, eps] = await Promise.all([api.getSchedules(), api.getEndpoints()]);
       setSchedules(Array.isArray(sch) ? sch : []);
       setEndpoints(Array.isArray(eps) ? eps : []);
     } catch (e) { console.error(e); }
+    finally { setLoading(false); }
   };
 
   const handleCreate = async () => {
     if (!selectedEndpoint) return;
-    await api.createSchedule(selectedEndpoint, { intervalSeconds, isEnabled: true });
-    setShowForm(false);
-    loadAll();
+    try {
+      await api.createSchedule(selectedEndpoint, { intervalSeconds, isEnabled: true });
+      showToast('Schedule created successfully', 'success');
+      setShowForm(false);
+      loadAll();
+    } catch (e: any) {
+      console.error(e);
+      showToast(e.message || 'Failed to create schedule', 'error');
+    }
   };
 
   const handleToggle = async (sch: Schedule) => {
-    await api.updateSchedule(sch.id, { isEnabled: !sch.isEnabled });
-    loadAll();
+    try {
+      await api.updateSchedule(sch.id, { isEnabled: !sch.isEnabled });
+      showToast(`Schedule ${sch.isEnabled ? 'disabled' : 'enabled'}`, 'success');
+      loadAll();
+    } catch (e: any) {
+      console.error(e);
+      showToast(e.message || 'Failed to update schedule', 'error');
+    }
   };
 
   const handleDelete = async (id: number) => {
-    if (!confirm('Delete this schedule?')) return;
-    await api.deleteSchedule(id);
-    loadAll();
+    const confirmed = await confirmDialog('Delete this schedule?', 'Confirm Delete', { confirmText: 'Delete', cancelText: 'Cancel', variant: 'danger' });
+    if (!confirmed) return;
+    try {
+      await api.deleteSchedule(id);
+      showToast('Schedule deleted successfully', 'success');
+      loadAll();
+    } catch (e: any) {
+      console.error(e);
+      showToast(e.message || 'Failed to delete schedule', 'error');
+    }
   };
 
   const formatDuration = (seconds: number) => {
@@ -73,7 +100,9 @@ export default function SchedulesPage() {
         </div>
       )}
 
-      <div className="bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-800 overflow-hidden">
+      {loading ? (
+        <Spinner text="Loading schedules..." />
+      ) : <div className="bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-800 overflow-hidden">
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-gray-200 dark:border-gray-800 text-left text-gray-600 dark:text-gray-400">
@@ -107,7 +136,8 @@ export default function SchedulesPage() {
             )}
           </tbody>
         </table>
-      </div>
+      </div>}
+      <ConfirmDialog state={confirmState} />
     </div>
   );
 }

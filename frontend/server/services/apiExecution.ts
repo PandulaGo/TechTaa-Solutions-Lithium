@@ -1,4 +1,52 @@
 import type { ApiEndpoint, ExecutionResult } from '../types';
+import https from 'node:https';
+import http from 'node:http';
+
+function isLocalhost(url: string): boolean {
+  try {
+    const parsed = new URL(url);
+    const hostname = parsed.hostname.toLowerCase();
+    return hostname === 'localhost' || hostname === '127.0.0.1' || hostname === '::1';
+  } catch {
+    return false;
+  }
+}
+
+function fetchLocalhost(urlStr: string, method: string, headers: Record<string, string>, body: string | undefined): Promise<{ status: number; headers: Record<string, string>; body: string }> {
+  return new Promise((resolve, reject) => {
+    const url = new URL(urlStr);
+    const isHttps = url.protocol === 'https:';
+    const client = isHttps ? https : http;
+    const options: https.RequestOptions = {
+      hostname: url.hostname,
+      port: url.port || (isHttps ? 443 : 80),
+      path: url.pathname + url.search,
+      method,
+      headers,
+      rejectUnauthorized: false,
+    };
+
+    const req = client.request(options, (res) => {
+      let data = '';
+      res.on('data', (chunk) => { data += chunk; });
+      res.on('end', () => {
+        const responseHeaders: Record<string, string> = {};
+        for (const [k, v] of Object.entries(res.headers)) {
+          responseHeaders[k] = Array.isArray(v) ? v.join(', ') : String(v);
+        }
+        resolve({
+          status: res.statusCode || 0,
+          headers: responseHeaders,
+          body: data,
+        });
+      });
+    });
+
+    req.on('error', (err) => reject(err));
+    if (body) req.write(body);
+    req.end();
+  });
+}
 
 function buildAuthHeaders(endpoint: ApiEndpoint): Record<string, string> {
   const headers: Record<string, string> = {};
@@ -74,24 +122,43 @@ export async function executeEndpoint(endpoint: ApiEndpoint): Promise<ExecutionR
   const reqHeadersStr = JSON.stringify(reqHeaders);
 
   try {
-    const fetchOptions: RequestInit = {
-      method: endpoint.method,
-      headers: reqHeaders,
-    };
+    let statusCode: number;
+    let respHeaders: Record<string, string>;
+    let respBody: string;
 
-    if (endpoint.body && endpoint.method !== 'GET' && endpoint.method !== 'HEAD') {
-      fetchOptions.body = endpoint.body;
+    if (isLocalhost(url)) {
+      const result = await fetchLocalhost(
+        url,
+        endpoint.method,
+        reqHeaders,
+        endpoint.body && endpoint.method !== 'GET' && endpoint.method !== 'HEAD' ? endpoint.body : undefined
+      );
+      statusCode = result.status;
+      respHeaders = result.headers;
+      respBody = result.body;
+    } else {
+      const fetchOptions: RequestInit = {
+        method: endpoint.method,
+        headers: reqHeaders,
+      };
+
+      if (endpoint.body && endpoint.method !== 'GET' && endpoint.method !== 'HEAD') {
+        fetchOptions.body = endpoint.body;
+      }
+
+      const signal = AbortSignal.timeout(30000);
+      const response = await fetch(url, { ...fetchOptions, signal });
+
+      statusCode = response.status;
+      respHeaders = Object.fromEntries(response.headers.entries());
+      respBody = await response.text();
     }
 
-    const signal = AbortSignal.timeout(30000);
-    const response = await fetch(url, { ...fetchOptions, signal });
-
     const responseTimeMs = Date.now() - startTime;
-    const respHeadersStr = JSON.stringify(Object.fromEntries(response.headers.entries()));
-    const respBody = await response.text();
+    const respHeadersStr = JSON.stringify(respHeaders);
 
     return {
-      statusCode: response.status,
+      statusCode,
       responseTimeMs,
       responseHeaders: respHeadersStr,
       responseBody: respBody,

@@ -2,10 +2,14 @@ import { useEffect, useState } from 'react';
 import { api } from '../services/api';
 import type { ApiEndpoint, Collection, KeyValue } from '../types';
 import KeyValueEditor from '../components/KeyValueEditor';
+import Spinner from '../components/Spinner';
+import { useToast } from '../ToastContext';
+import { useConfirmDialog, ConfirmDialog } from '../components/ConfirmDialog';
 
 export default function EndpointsPage() {
   const [endpoints, setEndpoints] = useState<ApiEndpoint[]>([]);
   const [collections, setCollections] = useState<Collection[]>([]);
+  const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState<ApiEndpoint | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({
@@ -14,15 +18,19 @@ export default function EndpointsPage() {
   });
   const [headers, setHeaders] = useState<KeyValue[]>([]);
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
+  const { showToast } = useToast();
+  const { confirm: confirmDialog, state: confirmState } = useConfirmDialog();
 
   useEffect(() => { loadAll(); }, []);
 
   const loadAll = async () => {
+    setLoading(true);
     try {
       const [eps, cols] = await Promise.all([api.getEndpoints(), api.getCollections()]);
       setEndpoints(Array.isArray(eps) ? eps : []);
       setCollections(Array.isArray(cols) ? cols : []);
     } catch (e) { console.error(e); }
+    finally { setLoading(false); }
   };
 
   const toggleSelect = (id: number) => {
@@ -47,14 +55,19 @@ export default function EndpointsPage() {
     try {
       if (selected) {
         await api.updateEndpoint(selected.id, data);
+        showToast('Endpoint updated successfully', 'success');
       } else {
         await api.createEndpoint(data);
+        showToast('Endpoint created successfully', 'success');
       }
       setShowForm(false);
       setSelected(null);
       resetForm();
       loadAll();
-    } catch (e) { console.error(e); }
+    } catch (e: any) {
+      console.error(e);
+      showToast(e.message || 'Failed to save endpoint', 'error');
+    }
   };
 
   const handleEdit = (ep: ApiEndpoint) => {
@@ -70,25 +83,41 @@ export default function EndpointsPage() {
   };
 
   const handleDelete = async (id: number) => {
-    if (!confirm('Delete this endpoint?')) return;
-    await api.deleteEndpoint(id);
-    loadAll();
+    const confirmed = await confirmDialog('Delete this endpoint?', 'Confirm Delete', { confirmText: 'Delete', cancelText: 'Cancel', variant: 'danger' });
+    if (!confirmed) return;
+    try {
+      await api.deleteEndpoint(id);
+      showToast('Endpoint deleted successfully', 'success');
+      loadAll();
+    } catch (e: any) {
+      console.error(e);
+      showToast(e.message || 'Failed to delete endpoint', 'error');
+    }
   };
 
   const handleRun = async (id: number) => {
     try {
       const res = await api.runEndpoint(id);
-      alert(`Status: ${res.statusCode} | Time: ${res.responseTimeMs}ms | ${res.isSuccess ? 'PASS' : 'FAIL'}`);
-    } catch (e) { console.error(e); }
+      const title = res.isSuccess ? 'Test Passed' : 'Test Failed';
+      const type = res.isSuccess ? 'success' : 'error';
+      showToast(`Status: ${res.statusCode} | Time: ${res.responseTimeMs}ms`, type, title);
+    } catch (e: any) {
+      console.error(e);
+      showToast(e.message || 'Failed to run endpoint', 'error');
+    }
   };
 
   const handleBulkRun = async () => {
     try {
       const results = await api.bulkRun(Array.from(selectedIds));
-      const summary = results.map((r: any) => `${r.apiEndpointId}: ${r.statusCode} ${r.isSuccess ? '✓' : '✗'}`).join('\n');
-      alert(`Bulk run complete:\n${summary}`);
+      const passed = results.filter((r: any) => r.isSuccess).length;
+      const failed = results.length - passed;
+      showToast(`${passed} passed, ${failed} failed out of ${results.length} endpoints`, passed === results.length ? 'success' : 'info', 'Bulk Run Complete');
       loadAll();
-    } catch (e) { console.error(e); }
+    } catch (e: any) {
+      console.error(e);
+      showToast(e.message || 'Bulk run failed', 'error');
+    }
   };
 
   const resetForm = () => {
@@ -171,7 +200,9 @@ export default function EndpointsPage() {
         </div>
       )}
 
-      <div className="bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-800 overflow-hidden">
+      {loading ? (
+        <Spinner text="Loading endpoints..." />
+      ) : <div className="bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-800 overflow-hidden">
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-gray-200 dark:border-gray-800 text-left text-gray-600 dark:text-gray-400">
@@ -213,7 +244,8 @@ export default function EndpointsPage() {
             )}
           </tbody>
         </table>
-      </div>
+      </div>}
+      <ConfirmDialog state={confirmState} />
     </div>
   );
 }

@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react';
 import { api } from '../services/api';
 import type { ApiResult, ApiEndpoint } from '../types';
+import Spinner from '../components/Spinner';
 
 export default function ResultsPage() {
   const [results, setResults] = useState<ApiResult[]>([]);
   const [endpoints, setEndpoints] = useState<ApiEndpoint[]>([]);
+  const [loading, setLoading] = useState(true);
   const [expanded, setExpanded] = useState<number | null>(null);
   const [filter, setFilter] = useState({ endpointId: '', isSuccess: '' });
   const [page, setPage] = useState(1);
@@ -13,6 +15,7 @@ export default function ResultsPage() {
   useEffect(() => { api.getEndpoints().then(eps => setEndpoints(Array.isArray(eps) ? eps : [])); }, []);
 
   const load = async () => {
+    setLoading(true);
     try {
       const params: any = { page, pageSize: 50 };
       if (filter.endpointId) params.endpointId = Number(filter.endpointId);
@@ -20,6 +23,7 @@ export default function ResultsPage() {
       const res = await api.getResults(params);
       setResults(Array.isArray(res) ? res : []);
     } catch (e) { console.error(e); }
+    finally { setLoading(false); }
   };
 
   const formatHeaders = (headers: string | null) => {
@@ -53,7 +57,9 @@ export default function ResultsPage() {
         </div>
       </div>
 
-      <div className="bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-800 overflow-hidden">
+      {loading ? (
+        <Spinner text="Loading results..." />
+      ) : <div className="bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-800 overflow-hidden">
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-gray-200 dark:border-gray-800 text-left text-gray-600 dark:text-gray-400">
@@ -127,7 +133,7 @@ export default function ResultsPage() {
             )}
           </tbody>
         </table>
-      </div>
+      </div>}
     </div>
-  );
+);
 }

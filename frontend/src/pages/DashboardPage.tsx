@@ -1,16 +1,19 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { api } from '../services/api';
 import type { DashboardStats, ApiEndpoint, ApiResult } from '../types';
+import Spinner from '../components/Spinner';
 
 export default function DashboardPage() {
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [endpoints, setEndpoints] = useState<ApiEndpoint[]>([]);
   const [latestResults, setLatestResults] = useState<Map<number, ApiResult>>(new Map());
+  const [loading, setLoading] = useState(true);
+  const mounted = useRef(true);
 
   useEffect(() => {
     loadData();
     const interval = setInterval(loadData, 5000);
-    return () => clearInterval(interval);
+    return () => { mounted.current = false; clearInterval(interval); };
   }, []);
 
   const loadData = async () => {
@@ -36,6 +39,8 @@ export default function DashboardPage() {
       setLatestResults(latest);
     } catch (e) {
       console.error('Failed to load dashboard', e);
+    } finally {
+      if (mounted.current) setLoading(false);
     }
   };
 
@@ -43,7 +48,9 @@ export default function DashboardPage() {
     <div className="space-y-6">
       <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">Dashboard</h2>
 
-      {stats && (
+      {loading ? (
+        <Spinner text="Loading dashboard..." />
+      ) : stats && (
         <div className="grid grid-cols-4 gap-4">
           <StatCard label="Endpoints" value={stats.totalEndpoints} color="text-blue-400" />
           <StatCard label="Passed" value={stats.passCount} color="text-green-400" />
