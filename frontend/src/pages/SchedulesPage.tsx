@@ -84,18 +84,18 @@ export default function SchedulesPage() {
           <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300">Create Schedule</h3>
           <div className="flex gap-3 items-end">
             <div className="flex-1">
-              <label className="text-xs text-gray-500 dark:text-gray-500 block mb-1">Endpoint</label>
+              <label className="text-xs text-gray-600 dark:text-gray-500 block mb-1">Endpoint</label>
               <select className="w-full bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded px-3 py-1.5 text-sm" value={selectedEndpoint} onChange={e => setSelectedEndpoint(Number(e.target.value))}>
                 <option value={0}>Select endpoint...</option>
                 {endpoints.map(ep => <option key={ep.id} value={ep.id}>{ep.name}</option>)}
               </select>
             </div>
             <div>
-              <label className="text-xs text-gray-500 dark:text-gray-500 block mb-1">Interval (seconds)</label>
+              <label className="text-xs text-gray-600 dark:text-gray-500 block mb-1">Interval (seconds)</label>
               <input className="w-32 bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded px-3 py-1.5 text-sm" type="number" min={1} value={intervalSeconds} onChange={e => setIntervalSeconds(Number(e.target.value))} />
             </div>
             <button onClick={handleCreate} className="bg-purple-700 hover:bg-purple-600 text-white text-sm px-4 py-1.5 rounded">Create</button>
-            <button onClick={() => setShowForm(false)} className="text-gray-600 dark:text-gray-400 text-sm px-3 py-1.5">Cancel</button>
+            <button onClick={() => setShowForm(false)} className="text-gray-700 dark:text-gray-400 text-sm px-3 py-1.5">Cancel</button>
           </div>
         </div>
       )}
@@ -105,7 +105,7 @@ export default function SchedulesPage() {
       ) : <div className="bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-800 overflow-hidden">
         <table className="w-full text-sm">
           <thead>
-            <tr className="border-b border-gray-200 dark:border-gray-800 text-left text-gray-600 dark:text-gray-400">
+            <tr className="border-b border-gray-200 dark:border-gray-800 text-left text-gray-700 dark:text-gray-400">
               <th className="p-3">Endpoint</th>
               <th className="p-3">Interval</th>
               <th className="p-3">Status</th>
@@ -118,21 +118,21 @@ export default function SchedulesPage() {
             {schedules.map(sch => (
               <tr key={sch.id} className="border-b border-gray-200 dark:border-gray-800/50 hover:bg-gray-100/50 dark:hover:bg-gray-800/30">
                 <td className="p-3">{sch.apiEndpoint?.name || `#${sch.apiEndpointId}`}</td>
-                <td className="p-3 text-gray-600 dark:text-gray-400">{formatDuration(sch.intervalSeconds)}</td>
+                <td className="p-3 text-gray-700 dark:text-gray-400">{formatDuration(sch.intervalSeconds)}</td>
                 <td className="p-3">
-                  <button onClick={() => handleToggle(sch)} className={`text-xs px-2 py-0.5 rounded ${sch.isEnabled ? 'bg-green-900/50 text-green-400' : 'bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-500'}`}>
+                  <button onClick={() => handleToggle(sch)} className={`text-xs px-2 py-0.5 rounded ${sch.isEnabled ? 'bg-green-100 text-green-700 dark:bg-green-900/50 dark:text-green-400' : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-500'}`}>
                     {sch.isEnabled ? 'On' : 'Off'}
                   </button>
                 </td>
-                <td className="p-3 text-gray-500 dark:text-gray-500 text-xs">{sch.lastRunAt ? new Date(sch.lastRunAt).toLocaleString() : 'Never'}</td>
-                <td className="p-3 text-gray-500 dark:text-gray-500 text-xs">{new Date(sch.nextRunAt).toLocaleString()}</td>
+                <td className="p-3 text-gray-600 dark:text-gray-500 text-xs">{sch.lastRunAt ? new Date(sch.lastRunAt).toLocaleString() : 'Never'}</td>
+                <td className="p-3 text-gray-600 dark:text-gray-500 text-xs">{new Date(sch.nextRunAt).toLocaleString()}</td>
                 <td className="p-3">
-                  <button onClick={() => handleDelete(sch.id)} className="text-red-400 hover:text-red-300 text-xs">Delete</button>
+                  <button onClick={() => handleDelete(sch.id)} className="text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 text-xs font-medium">Delete</button>
                 </td>
               </tr>
             ))}
             {schedules.length === 0 && (
-              <tr><td colSpan={6} className="p-6 text-center text-gray-400 dark:text-gray-600">No schedules yet</td></tr>
+              <tr><td colSpan={6} className="p-6 text-center text-gray-500 dark:text-gray-600">No schedules yet</td></tr>
             )}
           </tbody>
         </table>

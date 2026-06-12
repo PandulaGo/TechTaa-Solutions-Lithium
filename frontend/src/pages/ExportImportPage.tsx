@@ -63,27 +63,27 @@ export default function ExportImportPage() {
       <div className="grid grid-cols-2 gap-6">
         <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg p-4">
           <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">Export Endpoints</h3>
-          <p className="text-xs text-gray-500 dark:text-gray-500 mb-3">Select endpoints to export as JSON. Includes schedules and validation rules.</p>
+          <p className="text-xs text-gray-600 dark:text-gray-500 mb-3">Select endpoints to export as JSON. Includes schedules and validation rules.</p>
           <div className="max-h-64 overflow-auto space-y-1 mb-3">
             {loading ? (
               <Spinner text="Loading endpoints..." />
             ) : endpoints.length === 0 ? (
-              <p className="text-gray-400 dark:text-gray-600 text-xs">No endpoints</p>
+              <p className="text-gray-500 dark:text-gray-600 text-xs">No endpoints</p>
             ) : endpoints.map(ep => (
-              <label key={ep.id} className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:text-gray-200 cursor-pointer">
+              <label key={ep.id} className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-400 hover:text-gray-900 dark:text-gray-200 cursor-pointer">
                 <input type="checkbox" checked={selectedIds.has(ep.id)} onChange={() => toggleSelect(ep.id)} />
                 {ep.name}
               </label>
             ))}
           </div>
-          <button onClick={handleExport} disabled={selectedIds.size === 0} className="bg-purple-700 hover:bg-purple-600 disabled:bg-gray-100 dark:bg-gray-800 disabled:text-gray-400 dark:text-gray-600 text-white text-sm px-4 py-1.5 rounded">
+          <button onClick={handleExport} disabled={selectedIds.size === 0} className="bg-purple-700 hover:bg-purple-600 disabled:bg-gray-100 dark:bg-gray-800 disabled:text-gray-500 dark:text-gray-600 text-white text-sm px-4 py-1.5 rounded">
             Export Selected ({selectedIds.size})
           </button>
         </div>
 
         <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg p-4">
           <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">Import Endpoints</h3>
-          <p className="text-xs text-gray-500 dark:text-gray-500 mb-3">Import endpoints from a previously exported JSON file. Collections will be auto-created if they don't exist.</p>
+          <p className="text-xs text-gray-600 dark:text-gray-500 mb-3">Import endpoints from a previously exported JSON file. Collections will be auto-created if they don't exist.</p>
           <input ref={fileRef} type="file" accept=".json" className="hidden" onChange={handleFileChange} />
           <button onClick={handleImport} className="bg-purple-700 hover:bg-purple-600 text-white text-sm px-4 py-1.5 rounded">
             Import from File
@@ -93,7 +93,7 @@ export default function ExportImportPage() {
 
       <details className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg p-4">
         <summary className="text-sm font-semibold text-gray-700 dark:text-gray-300 cursor-pointer">Sample Import JSON Format</summary>
-        <p className="text-xs text-gray-500 dark:text-gray-500 mt-2 mb-3">Use this structure to build your own import file. Remove any fields you don't need.</p>
+        <p className="text-xs text-gray-600 dark:text-gray-500 mt-2 mb-3">Use this structure to build your own import file. Remove any fields you don't need.</p>
         <pre className="bg-gray-50 dark:bg-gray-950 border border-gray-300 dark:border-gray-700 rounded p-4 text-xs text-gray-700 dark:text-gray-300 overflow-auto max-h-[600px] whitespace-pre leading-relaxed">
 {`{
   "endpoints": [

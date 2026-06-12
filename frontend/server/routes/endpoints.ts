@@ -60,6 +60,28 @@ router.get('/', (req, res) => {
   }
 });
 
+router.get('/export', (req, res) => {
+  try {
+    const idsParam = req.query.ids as string;
+    if (!idsParam) return res.status(400).json({ error: 'ids query param required' });
+
+    const ids = idsParam.split(',').map(Number).filter(n => !isNaN(n));
+    const result = exportEndpoints(ids);
+    res.json(result);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+router.post('/import', (req, res) => {
+  try {
+    const result = importEndpoints(req.body);
+    res.json(result);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 router.get('/:id', (req, res) => {
   try {
     const row = db.prepare('SELECT * FROM ApiEndpoints WHERE Id = ?').get(Number(req.params.id)) as any;
@@ -223,28 +245,6 @@ router.post('/:id/run', async (req, res) => {
       isSuccess: isValid,
       errorMessage: result.errorMessage || null,
     });
-  } catch (err: any) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
-router.get('/export', (req, res) => {
-  try {
-    const idsParam = req.query.ids as string;
-    if (!idsParam) return res.status(400).json({ error: 'ids query param required' });
-
-    const ids = idsParam.split(',').map(Number).filter(n => !isNaN(n));
-    const result = exportEndpoints(ids);
-    res.json(result);
-  } catch (err: any) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
-router.post('/import', (req, res) => {
-  try {
-    const result = importEndpoints(req.body);
-    res.json(result);
   } catch (err: any) {
     res.status(500).json({ error: err.message });
   }

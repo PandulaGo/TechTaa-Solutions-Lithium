@@ -27,7 +27,7 @@ function App() {
         <aside className="w-56 bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800 flex flex-col">
           <div className="p-4 border-b border-gray-200 dark:border-gray-800">
             <h1 className="text-lg font-bold text-purple-600 dark:text-purple-400">Lithium</h1>
-            <p className="text-xs text-gray-500">API Testing & Monitoring</p>
+            <p className="text-xs text-gray-600 dark:text-gray-500">API Testing & Monitoring</p>
           </div>
           <nav className="flex-1 p-2 space-y-1">
             {navItems.map((item) => (
@@ -39,7 +39,7 @@ function App() {
                   `flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors ${
                     isActive
                       ? 'bg-purple-100 dark:bg-purple-900/50 text-purple-700 dark:text-purple-300'
-                      : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-gray-200'
+                      : 'text-gray-700 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-gray-200'
                   }`
                 }
               >
@@ -51,7 +51,7 @@ function App() {
           <div className="p-3 border-t border-gray-200 dark:border-gray-800">
             <button
               onClick={toggleTheme}
-              className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-md text-sm text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+              className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-md text-sm text-gray-700 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
               title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
             >
               {theme === 'dark' ? (

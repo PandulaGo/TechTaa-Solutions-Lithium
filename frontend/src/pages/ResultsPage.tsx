@@ -51,9 +51,9 @@ export default function ResultsPage() {
           <option value="false">Failed Only</option>
         </select>
         <div className="flex gap-1">
-          <button onClick={() => setPage(p => Math.max(1, p - 1))} className="text-xs px-2 py-1 bg-gray-100 dark:bg-gray-800 rounded text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:text-gray-200">Prev</button>
-          <span className="text-xs px-2 py-1 text-gray-600 dark:text-gray-400">Page {page}</span>
-          <button onClick={() => setPage(p => p + 1)} className="text-xs px-2 py-1 bg-gray-100 dark:bg-gray-800 rounded text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:text-gray-200">Next</button>
+          <button onClick={() => setPage(p => Math.max(1, p - 1))} className="text-xs px-2 py-1 bg-gray-100 dark:bg-gray-800 rounded text-gray-700 dark:text-gray-400 hover:text-gray-900 dark:text-gray-200">Prev</button>
+          <span className="text-xs px-2 py-1 text-gray-700 dark:text-gray-400">Page {page}</span>
+          <button onClick={() => setPage(p => p + 1)} className="text-xs px-2 py-1 bg-gray-100 dark:bg-gray-800 rounded text-gray-700 dark:text-gray-400 hover:text-gray-900 dark:text-gray-200">Next</button>
         </div>
       </div>
 
@@ -62,7 +62,7 @@ export default function ResultsPage() {
       ) : <div className="bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-800 overflow-hidden">
         <table className="w-full text-sm">
           <thead>
-            <tr className="border-b border-gray-200 dark:border-gray-800 text-left text-gray-600 dark:text-gray-400">
+            <tr className="border-b border-gray-200 dark:border-gray-800 text-left text-gray-700 dark:text-gray-400">
               <th className="p-3">Endpoint</th>
               <th className="p-3">Status</th>
               <th className="p-3">Code</th>
@@ -82,41 +82,41 @@ export default function ResultsPage() {
                 >
                   <td className="p-3">{r.apiEndpoint?.name || `#${r.apiEndpointId}`}</td>
                   <td className="p-3">
-                    <span className={`text-xs px-2 py-0.5 rounded border ${r.statusCode >= 200 && r.statusCode < 300 ? 'bg-green-900/50 text-green-400 border-green-700' : 'bg-red-900/50 text-red-400 border-red-700'}`}>
+                    <span className={`text-xs px-2 py-0.5 rounded border ${r.statusCode >= 200 && r.statusCode < 300 ? 'bg-green-100 text-green-700 border-green-200 dark:bg-green-900/50 dark:text-green-400 dark:border-green-700' : 'bg-red-100 text-red-700 border-red-200 dark:bg-red-900/50 dark:text-red-400 dark:border-red-700'}`}>
                       {r.statusCode}
                     </span>
                   </td>
                   <td className="p-3">{r.statusCode}</td>
-                  <td className="p-3 text-gray-600 dark:text-gray-400">{r.responseTimeMs} ms</td>
+                  <td className="p-3 text-gray-700 dark:text-gray-400">{r.responseTimeMs} ms</td>
                   <td className="p-3">
                     {r.isSuccess ? (
-                      <span className="text-green-400">✓ Pass</span>
+                      <span className="text-green-600 dark:text-green-400">✓ Pass</span>
                     ) : (
-                      <span className="text-red-400">✗ Fail</span>
+                      <span className="text-red-600 dark:text-red-400">✗ Fail</span>
                     )}
                   </td>
-                  <td className="p-3 text-red-400 text-xs max-w-40 truncate">{r.errorMessage || '—'}</td>
-                  <td className="p-3 text-gray-500 dark:text-gray-500 text-xs">{new Date(r.executedAt).toLocaleString()}</td>
+                  <td className="p-3 text-red-600 dark:text-red-400 text-xs max-w-40 truncate">{r.errorMessage || '—'}</td>
+                  <td className="p-3 text-gray-600 dark:text-gray-500 text-xs">{new Date(r.executedAt).toLocaleString()}</td>
                 </tr>
                 {expanded === r.id && (
                   <tr key={`exp-${r.id}`} className="bg-gray-50 dark:bg-gray-900">
                     <td colSpan={7} className="p-4">
                       <div className="space-y-3">
                         <div>
-                          <h4 className="text-xs font-semibold text-gray-600 dark:text-gray-400 mb-1">Response Headers</h4>
+                          <h4 className="text-xs font-semibold text-gray-700 dark:text-gray-400 mb-1">Response Headers</h4>
                           <pre className="bg-gray-50 dark:bg-gray-950 border border-gray-200 dark:border-gray-800 rounded p-3 text-xs text-gray-700 dark:text-gray-300 overflow-auto max-h-32">
                             {formatHeaders(r.responseHeaders) ? JSON.stringify(formatHeaders(r.responseHeaders), null, 2) : '—'}
                           </pre>
                         </div>
                         <div>
-                          <h4 className="text-xs font-semibold text-gray-600 dark:text-gray-400 mb-1">Response Body</h4>
+                          <h4 className="text-xs font-semibold text-gray-700 dark:text-gray-400 mb-1">Response Body</h4>
                           <pre className="bg-gray-50 dark:bg-gray-950 border border-gray-200 dark:border-gray-800 rounded p-3 text-xs text-gray-700 dark:text-gray-300 overflow-auto max-h-64 whitespace-pre-wrap">
                             {formatBody(r.responseBody) || '—'}
                           </pre>
                         </div>
                         {r.requestBody && (
                           <div>
-                            <h4 className="text-xs font-semibold text-gray-600 dark:text-gray-400 mb-1">Request Body</h4>
+                            <h4 className="text-xs font-semibold text-gray-700 dark:text-gray-400 mb-1">Request Body</h4>
                             <pre className="bg-gray-50 dark:bg-gray-950 border border-gray-200 dark:border-gray-800 rounded p-3 text-xs text-gray-700 dark:text-gray-300 overflow-auto max-h-32 whitespace-pre-wrap">
                               {formatBody(r.requestBody)}
                             </pre>
@@ -129,7 +129,7 @@ export default function ResultsPage() {
               </>
             ))}
             {results.length === 0 && (
-              <tr><td colSpan={7} className="p-6 text-center text-gray-400 dark:text-gray-600">No results yet</td></tr>
+              <tr><td colSpan={7} className="p-6 text-center text-gray-500 dark:text-gray-600">No results yet</td></tr>
             )}
           </tbody>
         </table>

@@ -25,10 +25,10 @@ LithiumApp/
 │   │   ├── db.ts                       # SQLite setup + schema
 │   │   ├── types.ts                    # Shared TypeScript types
 │   │   ├── services/
-│   │   │   ├── apiExecution.ts         # HTTP request execution
+│   │   │   ├── apiExecution.ts         # HTTP request execution (localhost TLS bypass)
 │   │   │   ├── validation.ts           # Rule validation logic
 │   │   │   ├── scheduleRunner.ts       # Background scheduler
-│   │   │   └── exportImport.ts         # JSON export/import
+│   │   │   └── exportImport.ts         # JSON export/import (auto-creates collections)
 │   │   └── routes/
 │   │       ├── endpoints.ts            # CRUD, run, bulk-run, export/import
 │   │       ├── collections.ts          # CRUD, endpoints by collection
@@ -38,7 +38,9 @@ LithiumApp/
 │   │       └── dashboard.ts            # Aggregate stats
 │   ├── src/
 │   │   ├── components/                 # Reusable UI components
-│   │   │   └── KeyValueEditor.tsx
+│   │   │   ├── KeyValueEditor.tsx      # Key-value pair editor for headers
+│   │   │   ├── Spinner.tsx             # Loading spinner component
+│   │   │   └── ConfirmDialog.tsx       # Custom confirm modal (replaces confirm())
 │   │   ├── pages/                      # Route-level pages
 │   │   │   ├── DashboardPage.tsx
 │   │   │   ├── EndpointsPage.tsx
@@ -54,6 +56,7 @@ LithiumApp/
 │   │   ├── App.tsx                     # Layout + routing
 │   │   ├── main.tsx                    # React entry point
 │   │   ├── ThemeContext.tsx            # Dark/light mode
+│   │   ├── ToastContext.tsx            # Toast notification system
 │   │   └── index.css                   # Tailwind CSS entry
 │   ├── index.html
 │   ├── package.json
@@ -214,12 +217,23 @@ Tokens and secrets are encrypted using ASP.NET Core Data Protection API before s
 ScheduleRunner tick → every 1 second
   ├─ Find all enabled schedules where (now >= NextRunAt)
   ├─ For each due endpoint (max 5 concurrent):
-  │   ├─ ApiExecutionService: apply auth, send HTTP request, capture response
+  │   ├─ ApiExecutionService:
+  │   │   ├─ Detect localhost URLs (localhost, 127.0.0.1, ::1)
+  │   │   ├─ Localhost: use node:https with rejectUnauthorized:false
+  │   │   │  (allows self-signed certificates on any port)
+  │   │   ├─ External: use native fetch() with strict TLS
+  │   │   ├─ Apply auth, send HTTP request, capture response
   │   ├─ ValidationService: run all enabled rules, determine pass/fail
   │   ├─ Save ApiResult to database
   │   └─ Update Schedule.LastRunAt / NextRunAt
   └─ Loop
 ```
+
+### Self-Signed Certificate Handling
+- Localhost URLs (any port) bypass TLS certificate verification
+- Uses `node:https` module directly with `rejectUnauthorized: false`
+- External URLs use standard `fetch()` with strict TLS verification
+- This allows testing against local dev servers with self-signed certs
 
 
 ---

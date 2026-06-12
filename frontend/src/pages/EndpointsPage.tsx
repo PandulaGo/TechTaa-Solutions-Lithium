@@ -160,14 +160,14 @@ export default function EndpointsPage() {
           </div>
 
           <details className="bg-gray-100 dark:bg-gray-800/50 rounded p-3">
-            <summary className="text-sm text-gray-600 dark:text-gray-400 cursor-pointer">Headers</summary>
+            <summary className="text-sm text-gray-700 dark:text-gray-400 cursor-pointer">Headers</summary>
             <div className="mt-2">
               <KeyValueEditor pairs={headers} onChange={setHeaders} />
             </div>
           </details>
 
           <details className="bg-gray-100 dark:bg-gray-800/50 rounded p-3">
-            <summary className="text-sm text-gray-600 dark:text-gray-400 cursor-pointer">Body</summary>
+            <summary className="text-sm text-gray-700 dark:text-gray-400 cursor-pointer">Body</summary>
             <div className="mt-2 space-y-2">
               <select className="bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded px-3 py-1.5 text-sm" value={form.bodyType} onChange={e => setForm({ ...form, bodyType: e.target.value })}>
                 <option value="json">JSON</option>
@@ -180,7 +180,7 @@ export default function EndpointsPage() {
           </details>
 
           <details className="bg-gray-100 dark:bg-gray-800/50 rounded p-3">
-            <summary className="text-sm text-gray-600 dark:text-gray-400 cursor-pointer">Authentication</summary>
+            <summary className="text-sm text-gray-700 dark:text-gray-400 cursor-pointer">Authentication</summary>
             <div className="mt-2 space-y-2">
               <select className="bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded px-3 py-1.5 text-sm" value={form.authType} onChange={e => setForm({ ...form, authType: e.target.value })}>
                 <option value="None">None</option>
@@ -195,7 +195,7 @@ export default function EndpointsPage() {
 
           <div className="flex gap-2">
             <button onClick={handleSave} className="bg-purple-700 hover:bg-purple-600 text-white text-sm px-4 py-1.5 rounded">{selected ? 'Update' : 'Create'}</button>
-            <button onClick={() => { setShowForm(false); setSelected(null); }} className="text-gray-600 dark:text-gray-400 text-sm px-3 py-1.5">Cancel</button>
+            <button onClick={() => { setShowForm(false); setSelected(null); }} className="text-gray-700 dark:text-gray-400 text-sm px-3 py-1.5">Cancel</button>
           </div>
         </div>
       )}
@@ -205,7 +205,7 @@ export default function EndpointsPage() {
       ) : <div className="bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-800 overflow-hidden">
         <table className="w-full text-sm">
           <thead>
-            <tr className="border-b border-gray-200 dark:border-gray-800 text-left text-gray-600 dark:text-gray-400">
+            <tr className="border-b border-gray-200 dark:border-gray-800 text-left text-gray-700 dark:text-gray-400">
               <th className="p-3 w-8">
                 <input type="checkbox" checked={selectedIds.size === endpoints.length && endpoints.length > 0} onChange={toggleSelectAll} />
               </th>
@@ -226,21 +226,21 @@ export default function EndpointsPage() {
                 <td className="p-3 cursor-pointer" onClick={() => handleEdit(ep)}>{ep.name}</td>
                 <td className="p-3">
                   <span className={`text-xs px-2 py-0.5 rounded border ${
-                    {GET:'bg-green-900/50 text-green-400 border-green-700',POST:'bg-blue-900/50 text-blue-400 border-blue-700',PUT:'bg-yellow-900/50 text-yellow-400 border-yellow-700',DELETE:'bg-red-900/50 text-red-400 border-red-700'}[ep.method] || 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400'
+                    {GET:'bg-green-100 text-green-700 border-green-200 dark:bg-green-900/50 dark:text-green-400 dark:border-green-700',POST:'bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-900/50 dark:text-blue-400 dark:border-blue-700',PUT:'bg-yellow-100 text-yellow-700 border-yellow-200 dark:bg-yellow-900/50 dark:text-yellow-400 dark:border-yellow-700',DELETE:'bg-red-100 text-red-700 border-red-200 dark:bg-red-900/50 dark:text-red-400 dark:border-red-700'}[ep.method] || 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-400 border-gray-200 dark:border-gray-700'
                   }`}>{ep.method}</span>
                 </td>
-                <td className="p-3 text-gray-600 dark:text-gray-400 truncate max-w-64">{ep.url}</td>
-                <td className="p-3 text-gray-500 dark:text-gray-500">{ep.collection?.name || '—'}</td>
-                <td className="p-3 text-gray-500 dark:text-gray-500">{ep.authType || 'None'}</td>
+                <td className="p-3 text-gray-700 dark:text-gray-400 truncate max-w-64">{ep.url}</td>
+                <td className="p-3 text-gray-600 dark:text-gray-500">{ep.collection?.name || '—'}</td>
+                <td className="p-3 text-gray-600 dark:text-gray-500">{ep.authType || 'None'}</td>
                 <td className="p-3 flex gap-2">
-                  <button onClick={() => handleRun(ep.id)} className="text-green-400 hover:text-green-300 text-xs">Run</button>
-                  <button onClick={() => handleEdit(ep)} className="text-blue-400 hover:text-blue-300 text-xs">Edit</button>
-                  <button onClick={() => handleDelete(ep.id)} className="text-red-400 hover:text-red-300 text-xs">Del</button>
+                  <button onClick={() => handleRun(ep.id)} className="text-green-600 hover:text-green-700 dark:text-green-400 dark:hover:text-green-300 text-xs font-medium">Run</button>
+                  <button onClick={() => handleEdit(ep)} className="text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 text-xs font-medium">Edit</button>
+                  <button onClick={() => handleDelete(ep.id)} className="text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 text-xs font-medium">Del</button>
                 </td>
               </tr>
             ))}
             {endpoints.length === 0 && (
-              <tr><td colSpan={7} className="p-6 text-center text-gray-400 dark:text-gray-600">No endpoints yet</td></tr>
+              <tr><td colSpan={7} className="p-6 text-center text-gray-500 dark:text-gray-600">No endpoints yet</td></tr>
             )}
           </tbody>
         </table>

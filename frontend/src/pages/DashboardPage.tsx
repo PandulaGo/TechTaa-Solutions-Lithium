@@ -52,17 +52,17 @@ export default function DashboardPage() {
         <Spinner text="Loading dashboard..." />
       ) : stats && (
         <div className="grid grid-cols-4 gap-4">
-          <StatCard label="Endpoints" value={stats.totalEndpoints} color="text-blue-400" />
-          <StatCard label="Passed" value={stats.passCount} color="text-green-400" />
-          <StatCard label="Failed" value={stats.failCount} color="text-red-400" />
-          <StatCard label="Avg Latency" value={`${stats.averageLatencyMs.toFixed(0)} ms`} color="text-yellow-400" />
+          <StatCard label="Endpoints" value={stats.totalEndpoints} color="text-blue-600 dark:text-blue-400" />
+          <StatCard label="Passed" value={stats.passCount} color="text-green-600 dark:text-green-400" />
+          <StatCard label="Failed" value={stats.failCount} color="text-red-600 dark:text-red-400" />
+          <StatCard label="Avg Latency" value={`${stats.averageLatencyMs.toFixed(0)} ms`} color="text-yellow-600 dark:text-yellow-400" />
         </div>
       )}
 
       <div className="bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-800 overflow-hidden">
         <table className="w-full text-sm">
           <thead>
-            <tr className="border-b border-gray-200 dark:border-gray-800 text-left text-gray-600 dark:text-gray-400">
+            <tr className="border-b border-gray-200 dark:border-gray-800 text-left text-gray-700 dark:text-gray-400">
               <th className="p-3">Name</th>
               <th className="p-3">Method</th>
               <th className="p-3">URL</th>
@@ -81,29 +81,29 @@ export default function DashboardPage() {
                   <td className="p-3">
                     <MethodBadge method={ep.method} />
                   </td>
-                  <td className="p-3 text-gray-600 dark:text-gray-400 truncate max-w-48">{ep.url}</td>
+                  <td className="p-3 text-gray-700 dark:text-gray-400 truncate max-w-48">{ep.url}</td>
                   <td className="p-3">
                     {result ? (
                       result.isSuccess ? (
-                        <span className="text-green-400">✓ Pass</span>
+                        <span className="text-green-600 dark:text-green-400">✓ Pass</span>
                       ) : (
-                        <span className="text-red-400">✗ Fail</span>
+                        <span className="text-red-600 dark:text-red-400">✗ Fail</span>
                       )
                     ) : (
-                      <span className="text-gray-400 dark:text-gray-600">—</span>
+                      <span className="text-gray-500 dark:text-gray-600">—</span>
                     )}
                   </td>
                   <td className="p-3">
                     {result ? (
                       <StatusCodeBadge code={result.statusCode} />
                     ) : (
-                      <span className="text-gray-400 dark:text-gray-600">—</span>
+                      <span className="text-gray-500 dark:text-gray-600">—</span>
                     )}
                   </td>
-                  <td className="p-3 text-gray-600 dark:text-gray-400">
+                  <td className="p-3 text-gray-700 dark:text-gray-400">
                     {result ? `${result.responseTimeMs} ms` : '—'}
                   </td>
-                  <td className="p-3 text-gray-500 dark:text-gray-500 text-xs">
+                  <td className="p-3 text-gray-600 dark:text-gray-500 text-xs">
                     {result ? new Date(result.executedAt).toLocaleTimeString() : 'Never'}
                   </td>
                 </tr>
@@ -111,7 +111,7 @@ export default function DashboardPage() {
             })}
             {endpoints.length === 0 && (
               <tr>
-                <td colSpan={7} className="p-6 text-center text-gray-400 dark:text-gray-600">No endpoints yet</td>
+                <td colSpan={7} className="p-6 text-center text-gray-500 dark:text-gray-600">No endpoints yet</td>
               </tr>
             )}
           </tbody>
@@ -132,14 +132,14 @@ function StatCard({ label, value, color }: { label: string; value: number | stri
 
 function MethodBadge({ method }: { method: string }) {
   const colors: Record<string, string> = {
-    GET: 'bg-green-900/50 text-green-400 border-green-700',
-    POST: 'bg-blue-900/50 text-blue-400 border-blue-700',
-    PUT: 'bg-yellow-900/50 text-yellow-400 border-yellow-700',
-    DELETE: 'bg-red-900/50 text-red-400 border-red-700',
-    PATCH: 'bg-purple-900/50 text-purple-400 border-purple-700',
+    GET: 'bg-green-100 text-green-700 border-green-200 dark:bg-green-900/50 dark:text-green-400 dark:border-green-700',
+    POST: 'bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-900/50 dark:text-blue-400 dark:border-blue-700',
+    PUT: 'bg-yellow-100 text-yellow-700 border-yellow-200 dark:bg-yellow-900/50 dark:text-yellow-400 dark:border-yellow-700',
+    DELETE: 'bg-red-100 text-red-700 border-red-200 dark:bg-red-900/50 dark:text-red-400 dark:border-red-700',
+    PATCH: 'bg-purple-100 text-purple-700 border-purple-200 dark:bg-purple-900/50 dark:text-purple-400 dark:border-purple-700',
   };
   return (
-    <span className={`text-xs px-2 py-0.5 rounded border ${colors[method] || 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400'}`}>
+    <span className={`text-xs px-2 py-0.5 rounded border ${colors[method] || 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-400 border-gray-200 dark:border-gray-700'}`}>
       {method}
     </span>
   );
@@ -148,7 +148,7 @@ function MethodBadge({ method }: { method: string }) {
 function StatusCodeBadge({ code }: { code: number }) {
   const isSuccess = code >= 200 && code < 300;
   return (
-    <span className={`text-xs px-2 py-0.5 rounded border ${isSuccess ? 'bg-green-900/50 text-green-400 border-green-700' : 'bg-red-900/50 text-red-400 border-red-700'}`}>
+    <span className={`text-xs px-2 py-0.5 rounded border ${isSuccess ? 'bg-green-100 text-green-700 border-green-200 dark:bg-green-900/50 dark:text-green-400 dark:border-green-700' : 'bg-red-100 text-red-700 border-red-200 dark:bg-red-900/50 dark:text-red-400 dark:border-red-700'}`}>
       {code}
     </span>
   );

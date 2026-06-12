@@ -83,6 +83,11 @@
 ### Empty State
 - Full-width table row: "No endpoints yet" centered in gray-600
 
+### Loading State
+- Shows "Loading dashboard..." spinner for stats cards while initial data loads
+- Spinner only shows on first load; subsequent polling refreshes data silently
+- Table shows "No endpoints yet" until endpoints are loaded
+
 ---
 
 ## 4. Endpoints Page
@@ -91,7 +96,7 @@
 **Purpose**: Full CRUD for API endpoint definitions with request builder
 
 ### Toolbar
-- **"Run Selected (N)" button**: Appears when ≥1 endpoint is checked. Sends `POST /api/endpoints/bulk-run` with selected IDs. Shows alert with per-endpoint status/code/pass summary.
+- **"Run Selected (N)" button**: Appears when ≥1 endpoint is checked. Sends `POST /api/endpoints/bulk-run` with selected IDs. Shows toast notification with pass/fail summary.
 
 ### Selection
 - Checkbox per row + Select All checkbox in header
@@ -139,7 +144,8 @@ OAuth2:  {"access_token": "..."}
 #### Save Flow
 1. Serializes headers to JSON string
 2. Sends `POST /api/endpoints` (create) or `PUT /api/endpoints/{id}` (update)
-3. Closes form, resets fields, reloads endpoint list
+3. Shows success toast notification
+4. Closes form, resets fields, reloads endpoint list
 
 ### Endpoints Table
 | Column     | Content                                                        |
@@ -154,11 +160,17 @@ OAuth2:  {"access_token": "..."}
 
 ### Manual Run
 - "Run" button per row → `POST /api/endpoints/{id}/run`
-- Result shown via `alert()`: status code, response time, pass/fail
+- Result shown via toast notification: status code, response time, pass/fail
+- Success toast (green) for pass, error toast (red) for fail
 
 ### Delete
-- `confirm()` dialog before `DELETE /api/endpoints/{id}`
+- Custom ConfirmDialog modal before `DELETE /api/endpoints/{id}`
+- Shows success toast on deletion
 - Refreshes list on success
+
+### Loading State
+- Shows "Loading endpoints..." spinner while data is being fetched
+- Spinner replaces the table until data arrives
 
 ---
 
@@ -177,6 +189,7 @@ OAuth2:  {"access_token": "..."}
 | Interval   | number     | Seconds between runs, min 1    |
 
 - "Create" button → `POST /api/schedules?endpointId={id}`
+- Shows success toast on creation, error toast on failure
 - "Cancel" button hides form
 
 ### Schedules Table
@@ -191,10 +204,16 @@ OAuth2:  {"access_token": "..."}
 
 ### Toggle Behavior
 - Calls `PUT /api/schedules/{id}` with `{ isEnabled: !current }`
+- Shows success toast with "Schedule enabled/disabled" message
 - Refreshes table
 
 ### Delete
-- `confirm()` dialog → `DELETE /api/schedules/{id}`
+- Custom ConfirmDialog modal with red "Delete" button
+- Shows success toast on deletion
+- Refreshes table on success
+
+### Loading State
+- Shows "Loading schedules..." spinner while data is being fetched
 
 ### Interval Formatting Logic
 ```
@@ -224,6 +243,10 @@ OAuth2:  {"access_token": "..."}
 | Expected Value| text       | The value to compare against             |
 | Order         | number     | Execution order of rules                 |
 
+- "Create" button → `POST /api/validation-rules?endpointId={id}`
+- Shows success toast on creation, error toast on failure
+- "Cancel" button hides form
+
 ### Rule Types & What They Validate
 | Rule Type     | Validates                                            | Expected Value Example                               |
 | ------------- | ---------------------------------------------------- | ---------------------------------------------------- |
@@ -250,6 +273,14 @@ OAuth2:  {"access_token": "..."}
 | Order     | Execution order number                     |
 | Status    | "On" (green) / "Off" (gray) badge          |
 | Actions   | Delete (red text)                          |
+
+### Delete
+- Custom ConfirmDialog modal with red "Delete" button
+- Shows success toast on deletion
+- Refreshes table on success
+
+### Loading State
+- Shows "Loading rules..." spinner while data is being fetched
 
 ---
 
@@ -291,6 +322,10 @@ Clicking a row expands it inline to show full response details:
 - Click row again to collapse
 - Background color changes on expanded row (`bg-gray-850`)
 
+### Loading State
+- Shows "Loading results..." spinner while data is being fetched
+- Spinner replaces the table until data arrives
+
 ---
 
 ## 8. Export / Import Page
@@ -301,13 +336,14 @@ Clicking a row expands it inline to show full response details:
 ### Layout
 Two equal columns (`grid grid-cols-2 gap-6`), each in a card.
 
-### Message Banner
-- **Success**: Green background, green border
-- **Error**: Red background, red border
+### User Feedback
+- **Success**: Green toast notification (auto-dismiss after 4 seconds)
+- **Error**: Red toast notification (auto-dismiss after 4 seconds)
 - Shows on export/import completion or error
 
 ### Left Panel — Export
 - **Checkbox list** of all endpoints (scrollable, `max-h-64`)
+- Shows "Loading endpoints..." spinner while loading
 - **"Export Selected (N)"** button (disabled if 0 selected)
 - Download flow:
   1. Calls `GET /api/endpoints/export?ids=1,2,3`
@@ -315,6 +351,7 @@ Two equal columns (`grid grid-cols-2 gap-6`), each in a card.
   3. Generates object URL, creates hidden `<a>` element
   4. Programmatic click triggers browser download as `lithium-export.json`
   5. Revokes object URL
+  6. Shows success toast with count of exported endpoints
 
 ### Right Panel — Import
 - **Hidden file input** (`<input type="file" accept=".json">`)
@@ -323,8 +360,13 @@ Two equal columns (`grid grid-cols-2 gap-6`), each in a card.
   1. Reads file as text via `FileReader`/`.text()`
   2. `JSON.parse()` validates structure
   3. `POST /api/endpoints/import` with parsed payload
-  4. Shows result count (e.g. "Imported 3 endpoint(s)")
+  4. Shows success toast with result count (e.g. "Imported 3 endpoint(s)")
   5. Refreshes endpoint list
+
+### Collections During Import
+- If imported endpoint has a `collectionName` that doesn't exist, the collection is **auto-created**
+- If the collection already exists, the endpoint is linked to the existing collection
+- Collections are matched by name
 
 ### Sample Import JSON Format (collapsible)
 A `<details>` section below the two panels showing a **complete template** with 3 worked examples:
@@ -402,6 +444,33 @@ Toggle section showing a complete 2-endpoint import file with GET and POST examp
 ---
 
 ## 10. Reusable Components
+
+### Spinner
+- **Props**: `text?: string` (optional loading message, defaults to "Loading...")
+- Displays a centered SVG spinner animation with optional text below
+- Purple spinner (`text-purple-500`) with gray text
+- Used on all pages during data loading
+- File: `src/components/Spinner.tsx`
+
+### ConfirmDialog
+- **Props**: `state: ConfirmDialogState`
+- **ConfirmDialogState**: `{ isOpen, title, message, confirmText, cancelText, onConfirm, onCancel, variant }`
+- **variant**: `'danger'` (red confirm button) or `'primary'` (purple confirm button)
+- Modal overlay with backdrop blur
+- Centered card with title, message, Cancel and Confirm buttons
+- Replaces native `confirm()` dialog
+- Used with `useConfirmDialog()` hook: `const { confirm, state } = useConfirmDialog();`
+- File: `src/components/ConfirmDialog.tsx`
+
+### Toast Notifications (ToastContext)
+- **Provider**: `<ToastProvider>` wraps the app in `main.tsx`
+- **Hook**: `useToast()` → `{ showToast(message, type?, title?) }`
+- **Types**: `'success'` (green), `'error'` (red), `'info'` (yellow)
+- **Position**: Fixed top-right corner, stacked vertically
+- **Auto-dismiss**: 4 seconds with slide-in animation
+- **Manual dismiss**: ✕ button on each toast
+- **Dark theme support**: Adapts colors for dark mode
+- File: `src/ToastContext.tsx`
 
 ### KeyValueEditor
 - **Props**: `pairs: KeyValue[]`, `onChange: (pairs: KeyValue[]) => void`
@@ -499,6 +568,12 @@ ExportPayload     → endpoints: ExportedEndpoint[]
 
 ## 13. Error Handling & States
 
+### Loading States
+- All data-fetching pages show a `Spinner` component while loading
+- Spinner displays "Loading [page name]..." text
+- Spinner replaces the table content area (header/toolbar remain visible)
+- Pages with loading states: Dashboard, Endpoints, Schedules, Validation Rules, Results, Export/Import
+
 ### Empty States
 - All tables: centered "No X yet" message in gray-600 when array is empty
 - Dashboard: "No endpoints yet" when no endpoints exist
@@ -507,18 +582,22 @@ ExportPayload     → endpoints: ExportedEndpoint[]
 
 ### API Errors
 - All `catch` blocks log to `console.error`
-- Export/Import page: shows user-facing error in colored message banner
+- Errors shown to user via red toast notification (auto-dismiss after 4 seconds)
 - No page crashes on API failure
-- No loading spinners (implicit loading)
 
 ### User Confirmations
-- Delete operations: native `confirm()` dialog before proceeding
+- Delete operations: custom `ConfirmDialog` modal before proceeding
 - "Delete this endpoint/schedule/rule?"
+- Red "Delete" button for danger actions, "Cancel" to abort
 
-### User Feedback
-- Manual run results: `alert()` with status, time, pass/fail
-- Bulk run results: `alert()` with per-endpoint summary
-- Export/Import: colored message banner at top of page
+### User Feedback (Toast Notifications)
+- **Success** (green toast): Create, update, delete, toggle operations
+- **Error** (red toast): API failures, validation errors
+- **Info** (yellow toast): Partial success (e.g., bulk run with some failures)
+- Toast auto-dismisses after 4 seconds
+- Manual dismiss via ✕ button
+- Toasts stack in top-right corner
+- Replaces all native `alert()` and `confirm()` dialogs
 
 ---
 
@@ -574,6 +653,10 @@ ScheduleRunner tick → every 1 second
   ├─ Find all enabled schedules where (now >= NextRunAt)
   ├─ For each due endpoint (max 5 concurrent):
   │   ├─ apiExecution.ts:
+  │   │   ├─ Detect if URL is localhost (localhost, 127.0.0.1, ::1)
+  │   │   ├─ For localhost URLs: use node:https with rejectUnauthorized:false
+  │   │   │  (allows self-signed certificates on any port)
+  │   │   ├─ For external URLs: use native fetch() (strict TLS)
   │   │   ├─ Apply auth (Bearer/Basic/API Key/OAuth2)
   │   │   ├─ Apply headers from JSON config
   │   │   ├─ Apply body with content-type
@@ -587,6 +670,12 @@ ScheduleRunner tick → every 1 second
   │   └─ Update Schedule.LastRunAt / NextRunAt
   └─ Loop
 ```
+
+### Self-Signed Certificate Handling
+- Localhost URLs (any port) use `node:https` with `rejectUnauthorized: false`
+- This allows testing against local dev servers with self-signed certs
+- External URLs continue to use `fetch()` with strict TLS verification
+- Detection: hostname is `localhost`, `127.0.0.1`, or `::1`
 
 ---
 

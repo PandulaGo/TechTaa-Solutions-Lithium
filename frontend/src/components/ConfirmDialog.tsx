@@ -66,11 +66,11 @@ export function ConfirmDialog({ state }: { state: ConfirmDialogState }) {
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
       <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg shadow-xl p-6 w-96 max-w-[90vw] animate-[slideIn_0.2s_ease-out]">
         <h3 className="text-base font-semibold text-gray-900 dark:text-gray-100 mb-2">{state.title}</h3>
-        <p className="text-sm text-gray-600 dark:text-gray-400 mb-6">{state.message}</p>
+        <p className="text-sm text-gray-700 dark:text-gray-400 mb-6">{state.message}</p>
         <div className="flex justify-end gap-3">
           <button
             onClick={state.onCancel}
-            className="px-4 py-2 rounded-md text-sm text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+            className="px-4 py-2 rounded-md text-sm text-gray-700 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
           >
             {state.cancelText}
           </button>
