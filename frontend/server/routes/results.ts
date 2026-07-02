@@ -29,6 +29,10 @@ router.get('/', (req, res) => {
       conditions.push('r.ApiEndpointId = ?');
       values.push(Number(req.query.endpointId));
     }
+    if (req.query.collectionId) {
+      conditions.push('r.ApiEndpointId IN (SELECT Id FROM ApiEndpoints WHERE CollectionId = ?)');
+      values.push(Number(req.query.collectionId));
+    }
     if (req.query.isSuccess !== undefined) {
       conditions.push('r.IsSuccess = ?');
       values.push(req.query.isSuccess === 'true' ? 1 : 0);

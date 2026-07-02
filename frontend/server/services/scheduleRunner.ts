@@ -1,6 +1,7 @@
 import db from '../db';
 import { executeEndpoint } from './apiExecution';
 import { validateResult } from './validation';
+import { getDefaultEnvironmentId } from './variableInterpolation';
 import type { ApiEndpoint, Schedule } from '../types';
 
 let intervalId: ReturnType<typeof setInterval> | null = null;
@@ -25,7 +26,7 @@ async function runDueSchedule(schedule: Schedule) {
     const endpoint = db.prepare('SELECT * FROM ApiEndpoints WHERE Id = ?').get(schedule.apiEndpointId) as any;
     if (!endpoint) return;
 
-    const result = await executeEndpoint(parseRow(endpoint));
+    const result = await executeEndpoint(parseRow(endpoint), getDefaultEnvironmentId());
 
     const rules = db.prepare('SELECT * FROM ValidationRules WHERE ApiEndpointId = ?').all(schedule.apiEndpointId) as any[];
     const isValid = validateResult(result, rules.map(r => ({ ...r, isEnabled: !!r.IsEnabled })));

@@ -176,7 +176,7 @@ router.delete('/:id', (req, res) => {
 
 router.post('/bulk-run', async (req, res) => {
   try {
-    const { endpointIds } = req.body;
+    const { endpointIds, environmentId } = req.body;
     if (!Array.isArray(endpointIds)) return res.status(400).json({ error: 'endpointIds array required' });
 
     const results: any[] = [];
@@ -185,7 +185,7 @@ router.post('/bulk-run', async (req, res) => {
       if (!row) continue;
 
       const ep = rowToEndpoint(row);
-      const result = await executeEndpoint(ep);
+      const result = await executeEndpoint(ep, environmentId ?? null);
 
       const rules = db.prepare('SELECT * FROM ValidationRules WHERE ApiEndpointId = ?').all(id) as any[];
       const isValid = validateResult(result, rules.map(r => ({ ...r, isEnabled: !!r.IsEnabled })));
@@ -222,7 +222,8 @@ router.post('/:id/run', async (req, res) => {
     if (!row) return res.status(404).json({ error: 'Not found' });
 
     const ep = rowToEndpoint(row);
-    const result = await executeEndpoint(ep);
+    const environmentId = req.body?.environmentId ?? null;
+    const result = await executeEndpoint(ep, environmentId);
 
     const rules = db.prepare('SELECT * FROM ValidationRules WHERE ApiEndpointId = ?').all(ep.id) as any[];
     const isValid = validateResult(result, rules.map(r => ({ ...r, isEnabled: !!r.IsEnabled })));

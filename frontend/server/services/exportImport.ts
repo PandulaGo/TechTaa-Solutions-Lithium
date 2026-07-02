@@ -5,17 +5,28 @@ function getNow(): string {
   return new Date().toISOString().replace('T', ' ').substring(0, 19);
 }
 
+function parseJsonField(value: string | null): any {
+  if (!value) return null;
+  try { return JSON.parse(value); } catch { return value; }
+}
+
+function stringifyJsonField(value: any): string | null {
+  if (value === null || value === undefined) return null;
+  if (typeof value === 'string') return value;
+  return JSON.stringify(value);
+}
+
 function rowToEndpoint(row: any): ExportedEndpoint {
   return {
     name: row.Name,
     description: row.Description,
     method: row.Method,
     url: row.Url,
-    headers: row.Headers,
-    body: row.Body,
+    headers: parseJsonField(row.Headers),
+    body: parseJsonField(row.Body),
     bodyType: row.BodyType,
     authType: row.AuthType,
-    authConfig: row.AuthConfig,
+    authConfig: parseJsonField(row.AuthConfig),
     collectionName: row.CollectionName || null,
     schedule: row.ScheduleInterval ? {
       intervalSeconds: row.ScheduleInterval,
@@ -89,8 +100,8 @@ export function importEndpoints(payload: ImportPayload): { imported: number } {
 
     const result = insertEndpoint.run(
       collectionId, ep.name, ep.description || null, ep.method, ep.url,
-      ep.headers || null, ep.body || null, ep.bodyType || null,
-      ep.authType || 'None', ep.authConfig || null, now, now
+      stringifyJsonField(ep.headers), stringifyJsonField(ep.body), ep.bodyType || null,
+      ep.authType || 'None', stringifyJsonField(ep.authConfig), now, now
     );
 
     const endpointId = result.lastInsertRowid as number;

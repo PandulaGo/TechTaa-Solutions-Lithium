@@ -6,6 +6,7 @@ import schedulesRouter from './routes/schedules';
 import validationRulesRouter from './routes/validationRules';
 import resultsRouter from './routes/results';
 import dashboardRouter from './routes/dashboard';
+import environmentsRouter from './routes/environments';
 import { startScheduler } from './services/scheduleRunner';
 
 const app = express();
@@ -20,6 +21,7 @@ app.use('/api/schedules', schedulesRouter);
 app.use('/api/validation-rules', validationRulesRouter);
 app.use('/api/results', resultsRouter);
 app.use('/api/dashboard', dashboardRouter);
+app.use('/api/environments', environmentsRouter);
 
 app.get('/api/health', (_req, res) => {
   res.json({ status: 'ok' });

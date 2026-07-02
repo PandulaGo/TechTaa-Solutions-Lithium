@@ -21,11 +21,25 @@ router.get('/', (req, res) => {
     const endpointId = req.query.endpointId;
     let rows: any[];
     if (endpointId) {
-      rows = db.prepare('SELECT * FROM ValidationRules WHERE ApiEndpointId = ? ORDER BY "Order"').all(Number(endpointId));
+      rows = db.prepare(`
+        SELECT vr.*, ae.Name as EndpointName 
+        FROM ValidationRules vr 
+        LEFT JOIN ApiEndpoints ae ON vr.ApiEndpointId = ae.Id 
+        WHERE vr.ApiEndpointId = ? 
+        ORDER BY vr."Order"
+      `).all(Number(endpointId));
     } else {
-      rows = db.prepare('SELECT * FROM ValidationRules ORDER BY "Order"').all();
+      rows = db.prepare(`
+        SELECT vr.*, ae.Name as EndpointName 
+        FROM ValidationRules vr 
+        LEFT JOIN ApiEndpoints ae ON vr.ApiEndpointId = ae.Id 
+        ORDER BY vr."Order"
+      `).all();
     }
-    res.json(rows.map(rowToRule));
+    res.json(rows.map(row => ({
+      ...rowToRule(row),
+      apiEndpoint: row.EndpointName ? { id: row.ApiEndpointId, name: row.EndpointName } : undefined
+    })));
   } catch (err: any) {
     res.status(500).json({ error: err.message });
   }

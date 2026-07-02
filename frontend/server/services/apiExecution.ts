@@ -1,6 +1,7 @@
 import type { ApiEndpoint, ExecutionResult } from '../types';
 import https from 'node:https';
 import http from 'node:http';
+import { interpolateEndpoint } from './variableInterpolation';
 
 function isLocalhost(url: string): boolean {
   try {
@@ -115,10 +116,13 @@ function buildUrl(endpoint: ApiEndpoint): string {
   return endpoint.url;
 }
 
-export async function executeEndpoint(endpoint: ApiEndpoint): Promise<ExecutionResult> {
+export async function executeEndpoint(endpoint: ApiEndpoint, environmentId: number | null = null): Promise<ExecutionResult> {
+  const interpolated = interpolateEndpoint(endpoint, environmentId);
+  const resolvedEndpoint = { ...endpoint, ...interpolated };
+
   const startTime = Date.now();
-  const reqHeaders = buildRequestHeaders(endpoint);
-  const url = buildUrl(endpoint);
+  const reqHeaders = buildRequestHeaders(resolvedEndpoint);
+  const url = buildUrl(resolvedEndpoint);
   const reqHeadersStr = JSON.stringify(reqHeaders);
 
   try {
@@ -129,21 +133,21 @@ export async function executeEndpoint(endpoint: ApiEndpoint): Promise<ExecutionR
     if (isLocalhost(url)) {
       const result = await fetchLocalhost(
         url,
-        endpoint.method,
+        resolvedEndpoint.method,
         reqHeaders,
-        endpoint.body && endpoint.method !== 'GET' && endpoint.method !== 'HEAD' ? endpoint.body : undefined
+        resolvedEndpoint.body && resolvedEndpoint.method !== 'GET' && resolvedEndpoint.method !== 'HEAD' ? resolvedEndpoint.body : undefined
       );
       statusCode = result.status;
       respHeaders = result.headers;
       respBody = result.body;
     } else {
       const fetchOptions: RequestInit = {
-        method: endpoint.method,
+        method: resolvedEndpoint.method,
         headers: reqHeaders,
       };
 
-      if (endpoint.body && endpoint.method !== 'GET' && endpoint.method !== 'HEAD') {
-        fetchOptions.body = endpoint.body;
+      if (resolvedEndpoint.body && resolvedEndpoint.method !== 'GET' && resolvedEndpoint.method !== 'HEAD') {
+        fetchOptions.body = resolvedEndpoint.body;
       }
 
       const signal = AbortSignal.timeout(30000);
@@ -162,7 +166,7 @@ export async function executeEndpoint(endpoint: ApiEndpoint): Promise<ExecutionR
       responseTimeMs,
       responseHeaders: respHeadersStr,
       responseBody: respBody,
-      requestBody: endpoint.body || undefined,
+      requestBody: resolvedEndpoint.body || undefined,
       requestHeaders: reqHeadersStr,
       isSuccess: true,
     };
@@ -172,7 +176,7 @@ export async function executeEndpoint(endpoint: ApiEndpoint): Promise<ExecutionR
       responseTimeMs: Date.now() - startTime,
       responseHeaders: '{}',
       responseBody: '',
-      requestBody: endpoint.body || undefined,
+      requestBody: resolvedEndpoint.body || undefined,
       requestHeaders: reqHeadersStr,
       isSuccess: false,
       errorMessage: err.message || String(err),

@@ -85,11 +85,11 @@ export interface ExportedEndpoint {
   description: string | null;
   method: string;
   url: string;
-  headers: string | null;
-  body: string | null;
+  headers: string | object | null;
+  body: string | object | null;
   bodyType: string | null;
   authType: string;
-  authConfig: string | null;
+  authConfig: string | object | null;
   collectionName: string | null;
   schedule?: ExportedSchedule;
   validationRules: ExportedValidationRule[];
@@ -110,4 +110,23 @@ export interface ExportedValidationRule {
 
 export interface ImportPayload {
   endpoints: ExportedEndpoint[];
+}
+
+export interface Environment {
+  id: number;
+  name: string;
+  description: string | null;
+  isDefault: boolean;
+  createdAt: string;
+  updatedAt: string;
+  variables?: EnvironmentVariable[];
+}
+
+export interface EnvironmentVariable {
+  id: number;
+  environmentId: number;
+  key: string;
+  value: string;
+  createdAt: string;
+  updatedAt: string;
 }

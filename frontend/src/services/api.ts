@@ -26,11 +26,11 @@ export const api = {
   deleteEndpoint: (id: number) =>
     request<void>(`/endpoints/${id}`, { method: 'DELETE' }),
 
-  runEndpoint: (id: number) =>
-    request<any>(`/endpoints/${id}/run`, { method: 'POST' }),
+  runEndpoint: (id: number, environmentId?: number) =>
+    request<any>(`/endpoints/${id}/run`, { method: 'POST', body: JSON.stringify({ environmentId }) }),
 
-  bulkRun: (endpointIds: number[]) =>
-    request<any[]>('/endpoints/bulk-run', { method: 'POST', body: JSON.stringify({ endpointIds }) }),
+  bulkRun: (endpointIds: number[], environmentId?: number) =>
+    request<any[]>('/endpoints/bulk-run', { method: 'POST', body: JSON.stringify({ endpointIds, environmentId }) }),
 
   exportEndpoints: (ids: number[]) =>
     request<any>(`/endpoints/export?ids=${ids.join(',')}`),
@@ -79,8 +79,9 @@ export const api = {
     request<void>(`/validation-rules/${id}`, { method: 'DELETE' }),
 
   // Results & Dashboard
-  getResults: (params?: { endpointId?: number; page?: number; pageSize?: number; isSuccess?: boolean; from?: string; to?: string }) => {
+  getResults: (params?: { collectionId?: number; endpointId?: number; page?: number; pageSize?: number; isSuccess?: boolean; from?: string; to?: string }) => {
     const sp = new URLSearchParams();
+    if (params?.collectionId) sp.set('collectionId', String(params.collectionId));
     if (params?.endpointId) sp.set('endpointId', String(params.endpointId));
     if (params?.page) sp.set('page', String(params.page));
     if (params?.pageSize) sp.set('pageSize', String(params.pageSize));
@@ -94,4 +95,33 @@ export const api = {
   getResult: (id: number) => request<any>(`/results/${id}`),
 
   getDashboard: () => request<any>('/dashboard'),
+
+  // Environments
+  getEnvironments: () => request<any[]>('/environments'),
+
+  getEnvironment: (id: number) => request<any>(`/environments/${id}`),
+
+  createEnvironment: (data: any) =>
+    request<any>('/environments', { method: 'POST', body: JSON.stringify(data) }),
+
+  updateEnvironment: (id: number, data: any) =>
+    request<any>(`/environments/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+
+  deleteEnvironment: (id: number) =>
+    request<void>(`/environments/${id}`, { method: 'DELETE' }),
+
+  setEnvironmentDefault: (id: number) =>
+    request<any>(`/environments/${id}/set-default`, { method: 'PUT' }),
+
+  getEnvironmentVariables: (environmentId: number) =>
+    request<any[]>(`/environments/${environmentId}/variables`),
+
+  createEnvironmentVariable: (environmentId: number, data: any) =>
+    request<any>(`/environments/${environmentId}/variables`, { method: 'POST', body: JSON.stringify(data) }),
+
+  updateEnvironmentVariable: (environmentId: number, varId: number, data: any) =>
+    request<any>(`/environments/${environmentId}/variables/${varId}`, { method: 'PUT', body: JSON.stringify(data) }),
+
+  deleteEnvironmentVariable: (environmentId: number, varId: number) =>
+    request<void>(`/environments/${environmentId}/variables/${varId}`, { method: 'DELETE' }),
 };

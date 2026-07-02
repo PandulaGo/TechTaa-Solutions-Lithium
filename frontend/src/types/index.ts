@@ -61,6 +61,7 @@ export interface ValidationRule {
   comparisonType: string;
   isEnabled: boolean;
   order: number;
+  apiEndpoint?: Pick<ApiEndpoint, 'id' | 'name'>;
 }
 
 export interface DashboardStats {
@@ -68,6 +69,8 @@ export interface DashboardStats {
   passCount: number;
   failCount: number;
   averageLatencyMs: number;
+  totalSchedules: number;
+  totalValidationRules: number;
 }
 
 export interface KeyValue {
@@ -80,11 +83,11 @@ export interface ExportedEndpoint {
   description: string | null;
   method: string;
   url: string;
-  headers: string | null;
-  body: string | null;
+  headers: string | object | null;
+  body: string | object | null;
   bodyType: string | null;
   authType: string | null;
-  authConfig: string | null;
+  authConfig: string | object | null;
   collectionName: string | null;
   schedule: ExportedSchedule | null;
   validationRules: ExportedValidationRule[];
@@ -105,4 +108,23 @@ export interface ExportedValidationRule {
 
 export interface ExportPayload {
   endpoints: ExportedEndpoint[];
+}
+
+export interface Environment {
+  id: number;
+  name: string;
+  description: string | null;
+  isDefault: boolean;
+  createdAt: string;
+  updatedAt: string;
+  variables?: EnvironmentVariable[];
+}
+
+export interface EnvironmentVariable {
+  id: number;
+  environmentId: number;
+  key: string;
+  value: string;
+  createdAt: string;
+  updatedAt: string;
 }

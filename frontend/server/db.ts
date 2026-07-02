@@ -72,6 +72,26 @@ db.exec(`
     "Order" INTEGER NOT NULL DEFAULT 0,
     FOREIGN KEY (ApiEndpointId) REFERENCES ApiEndpoints(Id) ON DELETE CASCADE
   );
+
+  CREATE TABLE IF NOT EXISTS Environments (
+    Id INTEGER PRIMARY KEY AUTOINCREMENT,
+    Name TEXT NOT NULL,
+    Description TEXT,
+    IsDefault INTEGER NOT NULL DEFAULT 0,
+    CreatedAt TEXT NOT NULL DEFAULT (datetime('now')),
+    UpdatedAt TEXT NOT NULL DEFAULT (datetime('now'))
+  );
+
+  CREATE TABLE IF NOT EXISTS EnvironmentVariables (
+    Id INTEGER PRIMARY KEY AUTOINCREMENT,
+    EnvironmentId INTEGER NOT NULL,
+    Key TEXT NOT NULL,
+    Value TEXT NOT NULL,
+    CreatedAt TEXT NOT NULL DEFAULT (datetime('now')),
+    UpdatedAt TEXT NOT NULL DEFAULT (datetime('now')),
+    FOREIGN KEY (EnvironmentId) REFERENCES Environments(Id) ON DELETE CASCADE,
+    UNIQUE(EnvironmentId, Key)
+  );
 `);
 
 export default db;
