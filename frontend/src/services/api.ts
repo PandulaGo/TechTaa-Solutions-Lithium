@@ -30,7 +30,7 @@ export const api = {
     request<any>(`/endpoints/${id}/run`, { method: 'POST', body: JSON.stringify({ environmentId }) }),
 
   bulkRun: (endpointIds: number[], environmentId?: number) =>
-    request<any[]>('/endpoints/bulk-run', { method: 'POST', body: JSON.stringify({ endpointIds, environmentId }) }),
+    request<{ runId: number }>('/endpoints/bulk-run', { method: 'POST', body: JSON.stringify({ endpointIds, environmentId }) }),
 
   exportEndpoints: (ids: number[]) =>
     request<any>(`/endpoints/export?ids=${ids.join(',')}`),
@@ -77,6 +77,30 @@ export const api = {
 
   deleteValidationRule: (id: number) =>
     request<void>(`/validation-rules/${id}`, { method: 'DELETE' }),
+
+  // Collection Runs
+  runCollection: (id: number, environmentId?: number) =>
+    request<{ runId: number }>(`/collections/${id}/run`, { method: 'POST', body: JSON.stringify({ environmentId }) }),
+
+  getCollectionRun: (id: number) =>
+    request<any>(`/collection-runs/${id}`),
+
+  getCollectionRuns: () =>
+    request<any[]>('/collection-runs'),
+
+  exportCollectionRunResponses: async (runId: number) => {
+    const res = await fetch(`${API_BASE}/collection-runs/${runId}/export-responses`);
+    const data = await res.json();
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `collection-run-${runId}-responses.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  },
 
   // Results & Dashboard
   getResults: (params?: { collectionId?: number; endpointId?: number; page?: number; pageSize?: number; isSuccess?: boolean; from?: string; to?: string }) => {

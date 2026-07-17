@@ -13,6 +13,25 @@
 
 ## 2. Endpoint Registry
 
+### [Health Check]
+
+* **URL String:** `/health`
+* **HTTP Protocol Method:** `GET`
+* **Required Header Keys:** None
+* **Request Payload Schema:** None
+
+* **Response:**
+
+  Success (200 OK)
+
+  ```json
+  {
+    "status": "ok"
+  }
+  ```
+
+---
+
 ### [Collections — List All]
 
 * **URL String:** `/collections`
@@ -372,24 +391,22 @@
   { "error": "Not found" }
   ```
 
-  Global Error (500 Internal Server Error)
-
-  ```json
-  {
-    "success": false,
-    "error": "ERROR_CODE_STRING",
-    "message": "Human readable explanation of what failed."
-  }
-  ```
-
 ---
 
 ### [Endpoints — Run Single]
 
 * **URL String:** `/endpoints/:id/run`
 * **HTTP Protocol Method:** `POST`
-* **Required Header Keys:** None
-* **Request Payload Schema:** None
+* **Required Header Keys:** `Content-Type: application/json`
+* **Request Payload Schema:**
+
+  ```json
+  {
+    "environmentId": 1
+  }
+  ```
+
+  `environmentId` is optional. If provided, `{{var}}` placeholders in the endpoint's URL, headers, body, and authConfig are replaced with values from that environment.
 
 * **Response:**
 
@@ -422,9 +439,12 @@
 
   ```json
   {
-    "endpointIds": [1, 2, 3]
+    "endpointIds": [1, 2, 3],
+    "environmentId": 1
   }
   ```
+
+  `environmentId` is optional. Each endpoint is run sequentially in the order given.
 
 * **Response:**
 
@@ -471,7 +491,7 @@
         "description": null,
         "method": "GET",
         "url": "https://api.example.com/users",
-        "headers": null,
+        "headers": {"Accept": "application/json"},
         "body": null,
         "bodyType": null,
         "authType": "None",
@@ -494,6 +514,8 @@
     ]
   }
   ```
+
+  > **Note:** `headers`, `body`, and `authConfig` are exported as parsed JSON objects (not double-encoded strings). The import endpoint accepts both JSON string and object formats.
 
   Error (400 Bad Request)
 
@@ -533,6 +555,8 @@
     ]
   }
   ```
+
+  `headers`, `body`, and `authConfig` accept both JSON string (e.g. `"{\"Accept\":\"application/json\"}"`) and JSON object formats. Missing collections are auto-created.
 
 * **Response:**
 
@@ -725,10 +749,16 @@
       "expectedValue": "200",
       "comparisonType": "Equals",
       "isEnabled": true,
-      "order": 0
+      "order": 0,
+      "apiEndpoint": {
+        "id": 1,
+        "name": "Get Users"
+      }
     }
   ]
   ```
+
+  > **Note:** The response includes an `apiEndpoint` field (with `id` and `name`) from a LEFT JOIN with `ApiEndpoints`.
 
 ---
 
@@ -805,7 +835,7 @@
 * **URL String:** `/validation-rules/:id`
 * **HTTP Protocol Method:** `PUT`
 * **Required Header Keys:** `Content-Type: application/json`
-* **Request Payload Schema:** Partial — provided fields are updated; omitted fields retain existing values.
+* **Request Payload Schema:** All fields are optional — only provided fields are updated.
 
   ```json
   {
@@ -861,14 +891,15 @@
 
 ### [Results — List All]
 
-* **URL String:** `/results?endpointId=1&isSuccess=true&from=2026-06-01&to=2026-06-30&page=1&pageSize=50`
+* **URL String:** `/results?endpointId=1&collectionId=1&isSuccess=true&from=2026-06-01&to=2026-06-30&page=1&pageSize=50`
 * **HTTP Protocol Method:** `GET`
 * **Required Header Keys:** None
 * **Query Parameters:**
   - `endpointId` (optional) — filter by endpoint
+  - `collectionId` (optional) — filter by collection (subquery matching endpoints in that collection)
   - `isSuccess` (optional, `true`/`false`) — filter by pass/fail
-  - `from` (optional, ISO datetime) — filter by executedAt >=
-  - `to` (optional, ISO datetime) — filter by executedAt <=
+  - `from` (optional, ISO datetime) — filter by `executedAt >=`
+  - `to` (optional, ISO datetime) — filter by `executedAt <=`
   - `page` (optional, default 1) — pagination page
   - `pageSize` (optional, default 50, max 200) — results per page
 * **Request Payload Schema:** None
@@ -962,15 +993,70 @@
     "totalEndpoints": 10,
     "passCount": 7,
     "failCount": 3,
-    "averageLatencyMs": 245
+    "averageLatencyMs": 245,
+    "totalSchedules": 5,
+    "totalValidationRules": 12,
+    "recentCollections": [
+      {
+        "collectionId": 1,
+        "collectionName": "My Collection",
+        "endpointCount": 4,
+        "passCount": 3,
+        "failCount": 1,
+        "averageLatencyMs": 180,
+        "lastRunAt": "2026-06-24 12:00:00"
+      }
+    ],
+    "recentEndpoints": [
+      {
+        "id": 1,
+        "name": "Get Users",
+        "method": "GET",
+        "url": "https://api.example.com/users",
+        "statusCode": 200,
+        "responseTimeMs": 120,
+        "isSuccess": true,
+        "executedAt": "2026-06-24 12:00:00"
+      }
+    ]
   }
   ```
 
+  > **Note:** The response now includes 6 stat fields (adding `totalSchedules` and `totalValidationRules`), plus `recentCollections` (top 5) and `recentEndpoints` (last 25) arrays. Each uses a subquery to return only the latest result per endpoint.
+
 ---
 
-### [Health Check]
+### [Environments — List All]
 
-* **URL String:** `/health`
+* **URL String:** `/environments`
+* **HTTP Protocol Method:** `GET`
+* **Required Header Keys:** None
+* **Request Payload Schema:** None
+
+* **Response:**
+
+  Success (200 OK)
+
+  ```json
+  [
+    {
+      "id": 1,
+      "name": "Production",
+      "description": "Production API keys",
+      "isDefault": true,
+      "createdAt": "2026-06-24 10:00:00",
+      "updatedAt": "2026-06-24 10:00:00"
+    }
+  ]
+  ```
+
+  Results are ordered with the default environment first (`IsDefault DESC`), then alphabetically by name.
+
+---
+
+### [Environments — Get Single with Variables]
+
+* **URL String:** `/environments/:id`
 * **HTTP Protocol Method:** `GET`
 * **Required Header Keys:** None
 * **Request Payload Schema:** None
@@ -981,8 +1067,278 @@
 
   ```json
   {
-    "status": "ok"
+    "id": 1,
+    "name": "Production",
+    "description": "Production API keys",
+    "isDefault": true,
+    "createdAt": "2026-06-24 10:00:00",
+    "updatedAt": "2026-06-24 10:00:00",
+    "variables": [
+      {
+        "id": 1,
+        "environmentId": 1,
+        "key": "base_url",
+        "value": "https://api.prod.example.com",
+        "createdAt": "2026-06-24 10:00:00",
+        "updatedAt": "2026-06-24 10:00:00"
+      }
+    ]
   }
+  ```
+
+  Error (404 Not Found)
+
+  ```json
+  { "error": "Not found" }
+  ```
+
+---
+
+### [Environments — Create]
+
+* **URL String:** `/environments`
+* **HTTP Protocol Method:** `POST`
+* **Required Header Keys:** `Content-Type: application/json`
+* **Request Payload Schema:**
+
+  ```json
+  {
+    "name": "Staging",
+    "description": "Staging environment",
+    "isDefault": false
+  }
+  ```
+
+  If `isDefault: true`, all other environments are reset to non-default first.
+
+* **Response:**
+
+  Success (201 Created)
+
+  ```json
+  {
+    "id": 2,
+    "name": "Staging",
+    "description": "Staging environment",
+    "isDefault": false,
+    "createdAt": "2026-06-24 12:00:00",
+    "updatedAt": "2026-06-24 12:00:00"
+  }
+  ```
+
+---
+
+### [Environments — Update]
+
+* **URL String:** `/environments/:id`
+* **HTTP Protocol Method:** `PUT`
+* **Required Header Keys:** `Content-Type: application/json`
+* **Request Payload Schema:** All fields are optional.
+
+  ```json
+  {
+    "name": "Updated Staging",
+    "isDefault": true
+  }
+  ```
+
+  If `isDefault: true`, all other environments are reset to non-default first.
+
+* **Response:**
+
+  Success (200 OK)
+
+  ```json
+  {
+    "id": 2,
+    "name": "Updated Staging",
+    "isDefault": true,
+    "...": "..."
+  }
+  ```
+
+  Error (404 Not Found)
+
+  ```json
+  { "error": "Not found" }
+  ```
+
+---
+
+### [Environments — Delete]
+
+* **URL String:** `/environments/:id`
+* **HTTP Protocol Method:** `DELETE`
+* **Required Header Keys:** None
+* **Request Payload Schema:** None
+
+* **Response:**
+
+  Success (204 No Content)
+
+  *No response body.*
+
+  Error (404 Not Found)
+
+  ```json
+  { "error": "Not found" }
+  ```
+
+---
+
+### [Environments — Set Default]
+
+* **URL String:** `/environments/:id/set-default`
+* **HTTP Protocol Method:** `PUT`
+* **Required Header Keys:** None
+* **Request Payload Schema:** None
+
+* **Description:** Sets the specified environment as the default (used by scheduled runs). Resets all other environments to non-default.
+
+* **Response:**
+
+  Success (200 OK)
+
+  ```json
+  {
+    "id": 1,
+    "name": "Production",
+    "isDefault": true,
+    "...": "..."
+  }
+  ```
+
+  Error (404 Not Found)
+
+  ```json
+  { "error": "Not found" }
+  ```
+
+---
+
+### [Environment Variables — List]
+
+* **URL String:** `/environments/:id/variables`
+* **HTTP Protocol Method:** `GET`
+* **Required Header Keys:** None
+* **Request Payload Schema:** None
+
+* **Response:**
+
+  Success (200 OK)
+
+  ```json
+  [
+    {
+      "id": 1,
+      "environmentId": 1,
+      "key": "base_url",
+      "value": "https://api.prod.example.com",
+      "createdAt": "2026-06-24 10:00:00",
+      "updatedAt": "2026-06-24 10:00:00"
+    }
+  ]
+  ```
+
+  Error (404 — environment not found)
+
+  ```json
+  { "error": "Environment not found" }
+  ```
+
+---
+
+### [Environment Variables — Create]
+
+* **URL String:** `/environments/:id/variables`
+* **HTTP Protocol Method:** `POST`
+* **Required Header Keys:** `Content-Type: application/json`
+* **Request Payload Schema:**
+
+  ```json
+  {
+    "key": "api_token",
+    "value": "abc123def456"
+  }
+  ```
+
+* **Response:**
+
+  Success (201 Created)
+
+  ```json
+  {
+    "id": 2,
+    "environmentId": 1,
+    "key": "api_token",
+    "value": "abc123def456",
+    "createdAt": "2026-06-24 12:00:00",
+    "updatedAt": "2026-06-24 12:00:00"
+  }
+  ```
+
+  Error (404 — environment not found)
+
+  ```json
+  { "error": "Environment not found" }
+  ```
+
+---
+
+### [Environment Variables — Update]
+
+* **URL String:** `/environments/:id/variables/:varId`
+* **HTTP Protocol Method:** `PUT`
+* **Required Header Keys:** `Content-Type: application/json`
+* **Request Payload Schema:** Both fields are optional.
+
+  ```json
+  {
+    "key": "api_token",
+    "value": "new_value_xyz"
+  }
+  ```
+
+* **Response:**
+
+  Success (200 OK)
+
+  ```json
+  {
+    "id": 2,
+    "environmentId": 1,
+    "key": "api_token",
+    "value": "new_value_xyz",
+    "createdAt": "2026-06-24 12:00:00",
+    "updatedAt": "2026-06-24 12:05:00"
+  }
+  ```
+
+  Error (404 Not Found)
+
+  ```json
+  { "error": "Variable not found" }
+  ```
+
+---
+
+### [Environment Variables — Delete]
+
+* **URL String:** `/environments/:id/variables/:varId`
+* **HTTP Protocol Method:** `DELETE`
+* **Required Header Keys:** None
+* **Request Payload Schema:** None
+
+* **Response:**
+
+  Success (204 No Content)
+
+  *No response body.*
+
+  Error (404 Not Found)
+
+  ```json
+  { "error": "Variable not found" }
   ```
 
 ---

@@ -92,6 +92,40 @@ db.exec(`
     FOREIGN KEY (EnvironmentId) REFERENCES Environments(Id) ON DELETE CASCADE,
     UNIQUE(EnvironmentId, Key)
   );
+
+  CREATE TABLE IF NOT EXISTS CollectionRuns (
+    Id INTEGER PRIMARY KEY AUTOINCREMENT,
+    CollectionId INTEGER,
+    CollectionName TEXT NOT NULL,
+    Status TEXT NOT NULL DEFAULT 'Running',
+    TotalEndpoints INTEGER NOT NULL DEFAULT 0,
+    CompletedCount INTEGER NOT NULL DEFAULT 0,
+    SuccessCount INTEGER NOT NULL DEFAULT 0,
+    FailCount INTEGER NOT NULL DEFAULT 0,
+    IsAdHoc INTEGER NOT NULL DEFAULT 0,
+    StartedAt TEXT NOT NULL DEFAULT (datetime('now')),
+    CompletedAt TEXT,
+    FOREIGN KEY (CollectionId) REFERENCES Collections(Id) ON DELETE SET NULL
+  );
+
+  CREATE TABLE IF NOT EXISTS CollectionRunResults (
+    Id INTEGER PRIMARY KEY AUTOINCREMENT,
+    CollectionRunId INTEGER NOT NULL,
+    ApiEndpointId INTEGER NOT NULL,
+    EndpointName TEXT NOT NULL,
+    StatusCode INTEGER NOT NULL DEFAULT 0,
+    ResponseTimeMs INTEGER NOT NULL DEFAULT 0,
+    IsSuccess INTEGER NOT NULL DEFAULT 0,
+    ErrorMessage TEXT,
+    Status TEXT NOT NULL DEFAULT 'Pending',
+    ResponseBody TEXT,
+    ExecutedAt TEXT,
+    FOREIGN KEY (CollectionRunId) REFERENCES CollectionRuns(Id) ON DELETE CASCADE,
+    FOREIGN KEY (ApiEndpointId) REFERENCES ApiEndpoints(Id) ON DELETE CASCADE
+  );
 `);
+
+// Migrate existing tables
+try { db.exec("ALTER TABLE CollectionRunResults ADD COLUMN ResponseBody TEXT"); } catch {}
 
 export default db;

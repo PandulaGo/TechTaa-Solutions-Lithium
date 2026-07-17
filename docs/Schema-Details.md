@@ -83,9 +83,36 @@
 
 ---
 
+### Table Name: Environments
+
+| Attribute Name | Storage Data Type | Key/Modifiers | Logical Field Description |
+| :--- | :--- | :--- | :--- |
+| `Id` | `INTEGER` | Primary Key / Auto-increment | Unique environment identifier. |
+| `Name` | `TEXT` | Not Null | Human-readable environment name (e.g., Production, Staging, Dev). |
+| `Description` | `TEXT` | Nullable | Optional description of the environment. |
+| `IsDefault` | `INTEGER` | Not Null / Default `0` | Boolean flag (0/1) — one environment can be marked as default for scheduled runs. |
+| `CreatedAt` | `TEXT` | Not Null / Default `datetime('now')` | Timestamp of record creation. |
+| `UpdatedAt` | `TEXT` | Not Null / Default `datetime('now')` | Timestamp of last record update. |
+
+---
+
+### Table Name: EnvironmentVariables
+
+| Attribute Name | Storage Data Type | Key/Modifiers | Logical Field Description |
+| :--- | :--- | :--- | :--- |
+| `Id` | `INTEGER` | Primary Key / Auto-increment | Unique variable identifier. |
+| `EnvironmentId` | `INTEGER` | Foreign Key → Environments.Id / Not Null / ON DELETE CASCADE | The parent environment this variable belongs to. |
+| `Key` | `TEXT` | Not Null / Unique(EnvironmentId, Key) | Variable name used in `{{key}}` interpolation syntax. |
+| `Value` | `TEXT` | Not Null | The value substituted in place of `{{key}}`. |
+| `CreatedAt` | `TEXT` | Not Null / Default `datetime('now')` | Timestamp of record creation. |
+| `UpdatedAt` | `TEXT` | Not Null / Default `datetime('now')` | Timestamp of last record update. |
+
+---
+
 ## 2. Architectural Entity Relationships
 
 * **Collections** $\rightarrow$ **ApiEndpoints**: **One-to-Many**. A collection can contain many API endpoints. When a collection is deleted, child endpoints have their `CollectionId` set to `NULL` (ON DELETE SET NULL).
 * **ApiEndpoints** $\rightarrow$ **Schedules**: **One-to-Many**. An endpoint can have many schedules (though typically one). When an endpoint is deleted, all its schedules are cascade-deleted.
 * **ApiEndpoints** $\rightarrow$ **ApiResults**: **One-to-Many**. Each endpoint execution produces one result record. Historical results accumulate over time. Deleting an endpoint cascade-deletes all its results.
 * **ApiEndpoints** $\rightarrow$ **ValidationRules**: **One-to-Many**. An endpoint can have multiple validation rules that run in order. Deleting an endpoint cascade-deletes all its validation rules.
+* **Environments** $\rightarrow$ **EnvironmentVariables**: **One-to-Many**. An environment can contain many variables (key-value pairs). When an environment is deleted, all its variables are cascade-deleted. The combination of `EnvironmentId` + `Key` is unique.

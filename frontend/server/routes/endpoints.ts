@@ -3,6 +3,7 @@ import db from '../db';
 import { executeEndpoint } from '../services/apiExecution';
 import { validateResult } from '../services/validation';
 import { exportEndpoints, importEndpoints } from '../services/exportImport';
+import { startCollectionRun } from '../services/collectionRunner';
 import type { ApiEndpoint } from '../types';
 
 const router = Router();
@@ -174,43 +175,35 @@ router.delete('/:id', (req, res) => {
   }
 });
 
-router.post('/bulk-run', async (req, res) => {
+router.post('/bulk-run', (req, res) => {
   try {
     const { endpointIds, environmentId } = req.body;
     if (!Array.isArray(endpointIds)) return res.status(400).json({ error: 'endpointIds array required' });
 
-    const results: any[] = [];
+    if (endpointIds.length === 0) return res.status(400).json({ error: 'No endpoints to run' });
+
+    const now = getNow();
+    const runResult = db.prepare(`
+      INSERT INTO CollectionRuns (CollectionId, CollectionName, Status, TotalEndpoints, IsAdHoc, StartedAt)
+      VALUES (NULL, 'Bulk Run', 'Running', ?, 1, ?)
+    `).run(endpointIds.length, now);
+    const runId = runResult.lastInsertRowid as number;
+
+    const insertResult = db.prepare(`
+      INSERT INTO CollectionRunResults (CollectionRunId, ApiEndpointId, EndpointName, Status)
+      VALUES (?, ?, ?, 'Pending')
+    `);
+
     for (const id of endpointIds) {
       const row = db.prepare('SELECT * FROM ApiEndpoints WHERE Id = ?').get(id) as any;
-      if (!row) continue;
-
-      const ep = rowToEndpoint(row);
-      const result = await executeEndpoint(ep, environmentId ?? null);
-
-      const rules = db.prepare('SELECT * FROM ValidationRules WHERE ApiEndpointId = ?').all(id) as any[];
-      const isValid = validateResult(result, rules.map(r => ({ ...r, isEnabled: !!r.IsEnabled })));
-
-      const now = getNow();
-      db.prepare(`
-        INSERT INTO ApiResults (ApiEndpointId, StatusCode, ResponseTimeMs, ResponseHeaders, ResponseBody, RequestBody, RequestHeaders, IsSuccess, ErrorMessage, ExecutedAt)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-      `).run(
-        id, result.statusCode, result.responseTimeMs,
-        result.responseHeaders, result.responseBody ?? null,
-        result.requestBody ?? null, result.requestHeaders ?? null,
-        isValid ? 1 : 0, result.errorMessage || null, now
-      );
-
-      results.push({
-        apiEndpointId: id,
-        statusCode: result.statusCode,
-        responseTimeMs: result.responseTimeMs,
-        isSuccess: isValid,
-        errorMessage: result.errorMessage || null,
-      });
+      if (row) {
+        insertResult.run(runId, id, row.Name);
+      }
     }
 
-    res.json(results);
+    startCollectionRun(runId, endpointIds, environmentId ?? null);
+
+    res.json({ runId });
   } catch (err: any) {
     res.status(500).json({ error: err.message });
   }

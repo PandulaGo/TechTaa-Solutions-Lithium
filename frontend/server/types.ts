@@ -130,3 +130,31 @@ export interface EnvironmentVariable {
   createdAt: string;
   updatedAt: string;
 }
+
+export interface CollectionRun {
+  id: number;
+  collectionId: number | null;
+  collectionName: string;
+  status: 'Running' | 'Completed' | 'Failed';
+  totalEndpoints: number;
+  completedCount: number;
+  successCount: number;
+  failCount: number;
+  isAdHoc: boolean;
+  startedAt: string;
+  completedAt: string | null;
+  results?: CollectionRunResult[];
+}
+
+export interface CollectionRunResult {
+  id: number;
+  collectionRunId: number;
+  apiEndpointId: number;
+  endpointName: string;
+  statusCode: number;
+  responseTimeMs: number;
+  isSuccess: boolean;
+  errorMessage: string | null;
+  status: 'Pending' | 'Running' | 'Completed' | 'Failed';
+  executedAt: string | null;
+}

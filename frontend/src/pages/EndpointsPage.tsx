@@ -1,4 +1,5 @@
 import { useEffect, useState, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { api } from '../services/api';
 import type { ApiEndpoint, Collection, KeyValue, Schedule, ValidationRule } from '../types';
 import KeyValueEditor from '../components/KeyValueEditor';
@@ -39,6 +40,7 @@ export default function EndpointsPage() {
   const { showToast } = useToast();
   const { activeEnvironmentId } = useEnvironment();
   const { confirm: confirmDialog, state: confirmState } = useConfirmDialog();
+  const navigate = useNavigate();
 
   useEffect(() => { loadAll(); }, []);
 
@@ -236,14 +238,21 @@ export default function EndpointsPage() {
 
   const handleBulkRun = async () => {
     try {
-      const results = await api.bulkRun(Array.from(selectedIds), activeEnvironmentId ?? undefined);
-      const passed = results.filter((r: any) => r.isSuccess).length;
-      const failed = results.length - passed;
-      showToast(`${passed} passed, ${failed} failed out of ${results.length} endpoints`, passed === results.length ? 'success' : 'info', 'Bulk Run Complete');
-      loadAll();
+      const { runId } = await api.bulkRun(Array.from(selectedIds), activeEnvironmentId ?? undefined);
+      navigate(`/?runId=${runId}`);
     } catch (e: any) {
       console.error(e);
       showToast(e.message || 'Bulk run failed', 'error');
+    }
+  };
+
+  const handleRunCollection = async (collectionId: number) => {
+    try {
+      const { runId } = await api.runCollection(collectionId, activeEnvironmentId ?? undefined);
+      navigate(`/?runId=${runId}`);
+    } catch (e: any) {
+      console.error(e);
+      showToast(e.message || 'Failed to run collection', 'error');
     }
   };
 
@@ -548,6 +557,14 @@ export default function EndpointsPage() {
                   <span className="text-xs text-purple-700 dark:text-purple-300 bg-purple-100 dark:bg-purple-900/50 px-2 py-0.5 rounded font-medium">
                     {group.endpoints.length} endpoint{group.endpoints.length !== 1 ? 's' : ''}
                   </span>
+                  {group.collection && (
+                    <button
+                      onClick={(e) => { e.stopPropagation(); handleRunCollection(group.collection!.id); }}
+                      className="ml-auto mr-2 bg-purple-700 hover:bg-purple-600 text-white text-xs px-3 py-1 rounded transition-colors"
+                    >
+                      Run Collection
+                    </button>
+                  )}
                 </div>
                 {isExpanded && (
                   <table className="w-full text-sm">
