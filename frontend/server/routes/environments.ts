@@ -5,7 +5,7 @@ import type { Environment, EnvironmentVariable } from '../types';
 const router = Router();
 
 function getNow(): string {
-  return new Date().toISOString().replace('T', ' ').substring(0, 19);
+  return new Date().toISOString().replace('T', ' ').substring(0, 19) + 'Z';
 }
 
 function rowToEnvironment(row: any): Environment {

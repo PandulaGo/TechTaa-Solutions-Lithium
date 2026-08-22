@@ -6,7 +6,7 @@ import type { Collection } from '../types';
 const router = Router();
 
 function getNow(): string {
-  return new Date().toISOString().replace('T', ' ').substring(0, 19);
+  return new Date().toISOString().replace('T', ' ').substring(0, 19) + 'Z';
 }
 
 function rowToCollection(row: any): Collection {
@@ -91,8 +91,20 @@ router.put('/:id', (req, res) => {
 
 router.delete('/:id', (req, res) => {
   try {
-    const result = db.prepare('DELETE FROM Collections WHERE Id = ?').run(Number(req.params.id));
-    if (result.changes === 0) return res.status(404).json({ error: 'Not found' });
+    const id = Number(req.params.id);
+    const existing = db.prepare('SELECT * FROM Collections WHERE Id = ?').get(id) as any;
+    if (!existing) return res.status(404).json({ error: 'Not found' });
+
+    const cascade = req.query.cascade === 'true';
+    if (cascade) {
+      db.prepare('DELETE FROM Schedules WHERE CollectionId = ?').run(id);
+      db.prepare('DELETE FROM ValidationRules WHERE ApiEndpointId IN (SELECT Id FROM ApiEndpoints WHERE CollectionId = ?)').run(id);
+      db.prepare('DELETE FROM ApiResults WHERE ApiEndpointId IN (SELECT Id FROM ApiEndpoints WHERE CollectionId = ?)').run(id);
+      db.prepare('DELETE FROM ApiEndpoints WHERE CollectionId = ?').run(id);
+      db.prepare('DELETE FROM CollectionRuns WHERE Id NOT IN (SELECT CollectionRunId FROM CollectionRunResults)').run();
+    }
+
+    db.prepare('DELETE FROM Collections WHERE Id = ?').run(id);
     res.status(204).send();
   } catch (err: any) {
     res.status(500).json({ error: err.message });

@@ -95,8 +95,9 @@ function buildRequestHeaders(endpoint: ApiEndpoint): Record<string, string> {
       'urlencoded': 'application/x-www-form-urlencoded',
       'raw': 'text/plain',
     };
-    if (contentTypes[endpoint.bodyType] && !headers['Content-Type']) {
-      headers['Content-Type'] = contentTypes[endpoint.bodyType];
+    const ct = contentTypes[endpoint.bodyType.toLowerCase()];
+    if (ct && !headers['Content-Type']) {
+      headers['Content-Type'] = ct;
     }
   }
 
@@ -119,6 +120,17 @@ function buildUrl(endpoint: ApiEndpoint): string {
 export async function executeEndpoint(endpoint: ApiEndpoint, environmentId: number | null = null): Promise<ExecutionResult> {
   const interpolated = interpolateEndpoint(endpoint, environmentId);
   const resolvedEndpoint = { ...endpoint, ...interpolated };
+
+  if (/\{\{[^}]+\}\}/.test(resolvedEndpoint.url)) {
+    return {
+      statusCode: 0,
+      responseTimeMs: 0,
+      responseHeaders: '{}',
+      responseBody: '',
+      isSuccess: false,
+      errorMessage: `Unresolved variables in URL: ${resolvedEndpoint.url}. Select an environment with the required variables.`,
+    };
+  }
 
   const startTime = Date.now();
   const reqHeaders = buildRequestHeaders(resolvedEndpoint);
@@ -168,6 +180,7 @@ export async function executeEndpoint(endpoint: ApiEndpoint, environmentId: numb
       responseBody: respBody,
       requestBody: resolvedEndpoint.body || undefined,
       requestHeaders: reqHeadersStr,
+      requestUrl: url,
       isSuccess: true,
     };
   } catch (err: any) {
@@ -178,6 +191,7 @@ export async function executeEndpoint(endpoint: ApiEndpoint, environmentId: numb
       responseBody: '',
       requestBody: resolvedEndpoint.body || undefined,
       requestHeaders: reqHeadersStr,
+      requestUrl: url,
       isSuccess: false,
       errorMessage: err.message || String(err),
     };

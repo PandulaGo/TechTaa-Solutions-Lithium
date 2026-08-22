@@ -2,14 +2,14 @@ import { Router } from 'express';
 import db from '../db';
 import { executeEndpoint } from '../services/apiExecution';
 import { validateResult } from '../services/validation';
-import { exportEndpoints, importEndpoints } from '../services/exportImport';
+import { exportEndpoints, importEndpoints, importTemporary } from '../services/exportImport';
 import { startCollectionRun } from '../services/collectionRunner';
 import type { ApiEndpoint } from '../types';
 
 const router = Router();
 
 function getNow(): string {
-  return new Date().toISOString().replace('T', ' ').substring(0, 19);
+  return new Date().toISOString().replace('T', ' ').substring(0, 19) + 'Z';
 }
 
 function rowToEndpoint(row: any): ApiEndpoint {
@@ -165,10 +165,36 @@ router.put('/:id', (req, res) => {
   }
 });
 
+router.post('/batch-delete', (req, res) => {
+  try {
+    const { ids } = req.body;
+    if (!Array.isArray(ids) || ids.length === 0) return res.status(400).json({ error: 'ids array required' });
+
+    const placeholders = ids.map(() => '?').join(',');
+    const idList = ids.join(',');
+
+    db.transaction(() => {
+      db.prepare(`DELETE FROM ValidationRules WHERE ApiEndpointId IN (${placeholders})`).run(...ids);
+      db.prepare(`DELETE FROM ApiResults WHERE ApiEndpointId IN (${placeholders})`).run(...ids);
+      db.prepare(`DELETE FROM ApiEndpoints WHERE Id IN (${placeholders})`).run(...ids);
+      db.prepare(`DELETE FROM CollectionRuns WHERE Id IN (SELECT CollectionRunId FROM CollectionRunResults GROUP BY CollectionRunId HAVING COUNT(*) = 0)`).run();
+      db.prepare(`DELETE FROM CollectionRuns WHERE Id NOT IN (SELECT CollectionRunId FROM CollectionRunResults)`).run();
+    })();
+
+    res.json({ deleted: ids.length });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 router.delete('/:id', (req, res) => {
   try {
-    const result = db.prepare('DELETE FROM ApiEndpoints WHERE Id = ?').run(Number(req.params.id));
+    const id = Number(req.params.id);
+    db.prepare('DELETE FROM ValidationRules WHERE ApiEndpointId = ?').run(id);
+    db.prepare('DELETE FROM ApiResults WHERE ApiEndpointId = ?').run(id);
+    const result = db.prepare('DELETE FROM ApiEndpoints WHERE Id = ?').run(id);
     if (result.changes === 0) return res.status(404).json({ error: 'Not found' });
+    db.prepare(`DELETE FROM CollectionRuns WHERE Id NOT IN (SELECT CollectionRunId FROM CollectionRunResults)`).run();
     res.status(204).send();
   } catch (err: any) {
     res.status(500).json({ error: err.message });
@@ -183,10 +209,29 @@ router.post('/bulk-run', (req, res) => {
     if (endpointIds.length === 0) return res.status(400).json({ error: 'No endpoints to run' });
 
     const now = getNow();
+
+    const placeholders = endpointIds.map(() => '?').join(',');
+    const collectionIds = db.prepare(
+      `SELECT DISTINCT CollectionId FROM ApiEndpoints WHERE Id IN (${placeholders}) AND CollectionId IS NOT NULL`
+    ).all(...endpointIds).map((r: any) => r.CollectionId);
+
+    let collectionId: number | null = null;
+    let collectionName = 'Bulk Run';
+    let isAdHoc = 1;
+
+    if (collectionIds.length === 1) {
+      const col = db.prepare('SELECT Id, Name FROM Collections WHERE Id = ?').get(collectionIds[0]) as any;
+      if (col) {
+        collectionId = col.Id;
+        collectionName = col.Name;
+        isAdHoc = 0;
+      }
+    }
+
     const runResult = db.prepare(`
       INSERT INTO CollectionRuns (CollectionId, CollectionName, Status, TotalEndpoints, IsAdHoc, StartedAt)
-      VALUES (NULL, 'Bulk Run', 'Running', ?, 1, ?)
-    `).run(endpointIds.length, now);
+      VALUES (?, ?, 'Running', ?, ?, ?)
+    `).run(collectionId, collectionName, endpointIds.length, isAdHoc, now);
     const runId = runResult.lastInsertRowid as number;
 
     const insertResult = db.prepare(`
@@ -223,12 +268,13 @@ router.post('/:id/run', async (req, res) => {
 
     const now = getNow();
     db.prepare(`
-      INSERT INTO ApiResults (ApiEndpointId, StatusCode, ResponseTimeMs, ResponseHeaders, ResponseBody, RequestBody, RequestHeaders, IsSuccess, ErrorMessage, ExecutedAt)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      INSERT INTO ApiResults (ApiEndpointId, StatusCode, ResponseTimeMs, ResponseHeaders, ResponseBody, RequestBody, RequestHeaders, RequestUrl, IsSuccess, ErrorMessage, ExecutedAt)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `).run(
       ep.id, result.statusCode, result.responseTimeMs,
       result.responseHeaders, result.responseBody ?? null,
       result.requestBody ?? null, result.requestHeaders ?? null,
+      result.requestUrl ?? null,
       isValid ? 1 : 0, result.errorMessage || null, now
     );
 
@@ -239,6 +285,55 @@ router.post('/:id/run', async (req, res) => {
       isSuccess: isValid,
       errorMessage: result.errorMessage || null,
     });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+router.post('/import-and-run', (req, res) => {
+  try {
+    const { data, environmentId } = req.body;
+    if (!data) return res.status(400).json({ error: 'data is required' });
+
+    const { imported, endpointIds, collectionIds } = importTemporary(data);
+
+    const now = getNow();
+
+    // Determine collection for the run
+    let collectionId: number | null = null;
+    let collectionName = 'Imported Run';
+    if (collectionIds.length === 1) {
+      const col = db.prepare('SELECT Id, Name FROM Collections WHERE Id = ?').get(collectionIds[0]) as any;
+      if (col) {
+        collectionId = col.Id;
+        collectionName = col.Name;
+      }
+    }
+
+    const runResult = db.prepare(`
+      INSERT INTO CollectionRuns (CollectionId, CollectionName, Status, TotalEndpoints, IsAdHoc, StartedAt)
+      VALUES (?, ?, 'Running', ?, 0, ?)
+    `).run(collectionId, collectionName, endpointIds.length, now);
+    const runId = runResult.lastInsertRowid as number;
+
+    // Track as temporary import
+    for (const colId of collectionIds) {
+      db.prepare('INSERT INTO TemporaryImports (CollectionRunId, CollectionId) VALUES (?, ?)').run(runId, colId);
+    }
+
+    const insertResult = db.prepare(`
+      INSERT INTO CollectionRunResults (CollectionRunId, ApiEndpointId, EndpointName, Status)
+      VALUES (?, ?, ?, 'Pending')
+    `);
+
+    for (const id of endpointIds) {
+      const row = db.prepare('SELECT * FROM ApiEndpoints WHERE Id = ?').get(id) as any;
+      if (row) insertResult.run(runId, id, row.Name);
+    }
+
+    startCollectionRun(runId, endpointIds, environmentId ?? null);
+
+    res.json({ runId, imported });
   } catch (err: any) {
     res.status(500).json({ error: err.message });
   }

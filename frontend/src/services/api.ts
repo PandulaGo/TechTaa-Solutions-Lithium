@@ -26,6 +26,9 @@ export const api = {
   deleteEndpoint: (id: number) =>
     request<void>(`/endpoints/${id}`, { method: 'DELETE' }),
 
+  batchDeleteEndpoints: (ids: number[]) =>
+    request<{ deleted: number }>('/endpoints/batch-delete', { method: 'POST', body: JSON.stringify({ ids }) }),
+
   runEndpoint: (id: number, environmentId?: number) =>
     request<any>(`/endpoints/${id}/run`, { method: 'POST', body: JSON.stringify({ environmentId }) }),
 
@@ -38,6 +41,9 @@ export const api = {
   importEndpoints: (data: any) =>
     request<any>('/endpoints/import', { method: 'POST', body: JSON.stringify(data) }),
 
+  importAndRun: (data: any, environmentId?: number) =>
+    request<{ runId: number; imported: number }>('/endpoints/import-and-run', { method: 'POST', body: JSON.stringify({ data, environmentId }) }),
+
   // Collections
   getCollections: () => request<any[]>('/collections'),
 
@@ -49,15 +55,15 @@ export const api = {
   updateCollection: (id: number, data: any) =>
     request<any>(`/collections/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
 
-  deleteCollection: (id: number) =>
-    request<void>(`/collections/${id}`, { method: 'DELETE' }),
+  deleteCollection: (id: number, cascade?: boolean) =>
+    request<void>(`/collections/${id}${cascade ? '?cascade=true' : ''}`, { method: 'DELETE' }),
 
   // Schedules
-  getSchedules: (endpointId?: number) =>
-    request<any[]>(`/schedules${endpointId ? `?endpointId=${endpointId}` : ''}`),
+  getSchedules: (collectionId?: number) =>
+    request<any[]>(`/schedules${collectionId ? `?collectionId=${collectionId}` : ''}`),
 
-  createSchedule: (endpointId: number, data: any) =>
-    request<any>(`/schedules?endpointId=${endpointId}`, { method: 'POST', body: JSON.stringify(data) }),
+  createSchedule: (collectionId: number, data: any) =>
+    request<any>(`/schedules?collectionId=${collectionId}`, { method: 'POST', body: JSON.stringify(data) }),
 
   updateSchedule: (id: number, data: any) =>
     request<any>(`/schedules/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
@@ -98,8 +104,10 @@ export const api = {
     a.download = `collection-run-${runId}-responses.json`;
     document.body.appendChild(a);
     a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+    setTimeout(() => {
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }, 100);
   },
 
   // Results & Dashboard
@@ -148,4 +156,9 @@ export const api = {
 
   deleteEnvironmentVariable: (environmentId: number, varId: number) =>
     request<void>(`/environments/${environmentId}/variables/${varId}`, { method: 'DELETE' }),
+
+  // Scheduler
+  getSchedulerStatus: () => request<{ running: boolean }>('/scheduler/status'),
+  startScheduler: () => request<{ running: boolean }>('/scheduler/start', { method: 'POST' }),
+  stopScheduler: () => request<{ running: boolean }>('/scheduler/stop', { method: 'POST' }),
 };

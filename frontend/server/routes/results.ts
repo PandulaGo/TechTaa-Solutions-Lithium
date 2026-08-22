@@ -14,6 +14,7 @@ function rowToResult(row: any): ApiResult {
     responseBody: row.ResponseBody ?? null,
     requestBody: row.RequestBody ?? null,
     requestHeaders: row.RequestHeaders ?? null,
+    requestUrl: row.RequestUrl ?? null,
     isSuccess: !!row.IsSuccess,
     errorMessage: row.ErrorMessage ?? null,
     executedAt: row.ExecutedAt,

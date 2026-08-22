@@ -8,7 +8,7 @@ import resultsRouter from './routes/results';
 import dashboardRouter from './routes/dashboard';
 import environmentsRouter from './routes/environments';
 import collectionRunsRouter from './routes/collectionRuns';
-import { startScheduler } from './services/scheduleRunner';
+import schedulerRouter from './routes/scheduler';
 
 const app = express();
 const PORT = 10021;
@@ -24,6 +24,7 @@ app.use('/api/results', resultsRouter);
 app.use('/api/dashboard', dashboardRouter);
 app.use('/api/environments', environmentsRouter);
 app.use('/api/collection-runs', collectionRunsRouter);
+app.use('/api/scheduler', schedulerRouter);
 
 app.get('/api/health', (_req, res) => {
   res.json({ status: 'ok' });
@@ -31,5 +32,4 @@ app.get('/api/health', (_req, res) => {
 
 app.listen(PORT, () => {
   console.log(`Lithium API server running on http://localhost:${PORT}`);
-  startScheduler();
 });

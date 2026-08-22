@@ -38,10 +38,12 @@
 
 ### Table Name: Schedules
 
+> **Note:** Scheduling is collection-level. A legacy migration in `db.ts` rebuilds this table if it still contains an `ApiEndpointId` column, remapping each row to the parent collection of its former endpoint and deduplicating to one schedule per collection.
+
 | Attribute Name | Storage Data Type | Key/Modifiers | Logical Field Description |
 | :--- | :--- | :--- | :--- |
 | `Id` | `INTEGER` | Primary Key / Auto-increment | Unique schedule identifier. |
-| `ApiEndpointId` | `INTEGER` | Foreign Key → ApiEndpoints.Id / Not Null / ON DELETE CASCADE | The endpoint this schedule executes. |
+| `CollectionId` | `INTEGER` | Foreign Key → Collections.Id / Not Null / ON DELETE CASCADE / Unique per collection | The collection this schedule executes (all endpoints in the collection run on each tick). |
 | `IsEnabled` | `INTEGER` | Not Null / Default `1` | Boolean flag (0/1) indicating whether the schedule is active. |
 | `IntervalSeconds` | `INTEGER` | Not Null / Default `60` | Repeat interval in seconds. |
 | `LastRunAt` | `TEXT` | Nullable | Timestamp of the last successful execution. |
@@ -56,16 +58,17 @@
 | Attribute Name | Storage Data Type | Key/Modifiers | Logical Field Description |
 | :--- | :--- | :--- | :--- |
 | `Id` | `INTEGER` | Primary Key / Auto-increment | Unique result identifier. |
-| `ApiEndpointId` | `INTEGER` | Foreign Key → ApiEndpoints.Id / Not Null / ON DELETE CASCADE | The endpoint that was executed. |
+| `ApiEndpointId` | `INTEGER` | Foreign Key → ApiEndpoints.Id / Nullable / ON DELETE SET NULL | The endpoint that was executed. Set to `NULL` when the endpoint is deleted so historical results are preserved. **Deletion order matters:** route handlers must delete `ApiResults` rows explicitly before deleting endpoints, because SQLite enforces the `NOT NULL`-era constraint semantics via manual cleanup (FK `SET NULL` + application-level deletes). |
 | `StatusCode` | `INTEGER` | Not Null / Default `0` | HTTP response status code (0 if request failed). |
 | `ResponseTimeMs` | `INTEGER` | Not Null / Default `0` | Total response time in milliseconds. |
 | `ResponseHeaders` | `TEXT` | Nullable | JSON string of response headers. |
 | `ResponseBody` | `TEXT` | Nullable | Raw response body content. |
 | `RequestBody` | `TEXT` | Nullable | Copy of the request body sent. |
 | `RequestHeaders` | `TEXT` | Nullable | JSON string of the request headers sent. |
+| `RequestUrl` | `TEXT` | Nullable | The fully interpolated request URL after environment variable substitution (`{{var}}` resolved). Falls back to `ApiEndpoints.Url` in dashboard queries when null. |
 | `IsSuccess` | `INTEGER` | Not Null / Default `0` | Boolean flag (0/1) — true if all validation rules passed or status is 2xx. |
 | `ErrorMessage` | `TEXT` | Nullable | Error message if the request failed (network error, timeout, etc.). |
-| `ExecutedAt` | `TEXT` | Not Null / Default `datetime('now')` | Timestamp of when the execution occurred. |
+| `ExecutedAt` | `TEXT` | Not Null / Default `datetime('now')` | Timestamp of when the execution occurred. Also used as the join key to correlate `CollectionRunResults` rows with their matching `ApiResults` row (`ApiEndpointId` + `ExecutedAt`). |
 
 ---
 

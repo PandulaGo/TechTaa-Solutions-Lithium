@@ -72,13 +72,19 @@ router.get('/:id', (req, res) => {
 router.get('/:id/export-responses', (req, res) => {
   try {
     const runId = Number(req.params.id);
-    const rows = db.prepare(
-      'SELECT ResponseBody FROM CollectionRunResults WHERE CollectionRunId = ? AND IsSuccess = 1 AND ResponseBody IS NOT NULL'
-    ).all(runId) as any[];
+
+    const rows = db.prepare(`
+      SELECT ar.ResponseBody
+      FROM CollectionRunResults cr
+      INNER JOIN ApiResults ar ON ar.ApiEndpointId = cr.ApiEndpointId AND ar.ExecutedAt = cr.ExecutedAt
+      WHERE cr.CollectionRunId = ? AND cr.IsSuccess = 1 AND ar.ResponseBody IS NOT NULL
+      ORDER BY cr.Id
+    `).all(runId) as any[];
 
     const bodies = rows.map(r => {
+      if (!r.ResponseBody) return null;
       try { return JSON.parse(r.ResponseBody); } catch { return r.ResponseBody; }
-    });
+    }).filter(Boolean);
 
     res.setHeader('Content-Disposition', `attachment; filename="collection-run-${runId}-responses.json"`);
     res.json(bodies);

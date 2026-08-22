@@ -6,7 +6,7 @@ import type { ApiEndpoint } from '../types';
 const activeRuns = new Set<number>();
 
 function getNow(): string {
-  return new Date().toISOString().replace('T', ' ').substring(0, 19);
+  return new Date().toISOString().replace('T', ' ').substring(0, 19) + 'Z';
 }
 
 function rowToEndpoint(row: any): ApiEndpoint {
@@ -48,12 +48,13 @@ export async function startCollectionRun(runId: number, endpointIds: number[], e
 
       const now = getNow();
       db.prepare(`
-        INSERT INTO ApiResults (ApiEndpointId, StatusCode, ResponseTimeMs, ResponseHeaders, ResponseBody, RequestBody, RequestHeaders, IsSuccess, ErrorMessage, ExecutedAt)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO ApiResults (ApiEndpointId, StatusCode, ResponseTimeMs, ResponseHeaders, ResponseBody, RequestBody, RequestHeaders, RequestUrl, IsSuccess, ErrorMessage, ExecutedAt)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `).run(
         id, result.statusCode, result.responseTimeMs,
         result.responseHeaders, result.responseBody ?? null,
         result.requestBody ?? null, result.requestHeaders ?? null,
+        result.requestUrl ?? null,
         isValid ? 1 : 0, result.errorMessage || null, now
       );
 

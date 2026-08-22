@@ -69,7 +69,7 @@ router.get('/', (req, res) => {
         e.Id as id,
         e.Name as name,
         e.Method as method,
-        e.Url as url,
+        COALESCE(r.RequestUrl, e.Url) as url,
         r.StatusCode as statusCode,
         r.ResponseTimeMs as responseTimeMs,
         r.IsSuccess as isSuccess,

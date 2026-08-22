@@ -3,6 +3,7 @@ import { api } from '../services/api';
 import type { Environment, EnvironmentVariable } from '../types';
 import Spinner from '../components/Spinner';
 import { useToast } from '../ToastContext';
+import { useEnvironment } from '../EnvironmentContext';
 import { useConfirmDialog, ConfirmDialog } from '../components/ConfirmDialog';
 
 export default function EnvironmentsPage() {
@@ -15,6 +16,7 @@ export default function EnvironmentsPage() {
   const [varForm, setVarForm] = useState<{ [envId: number]: { key: string; value: string } }>({});
   const [editingVar, setEditingVar] = useState<{ envId: number; varId: number } | null>(null);
   const { showToast } = useToast();
+  const { setActiveEnvironmentId } = useEnvironment();
   const { confirm: confirmDialog, state: confirmState } = useConfirmDialog();
 
   useEffect(() => { loadAll(); }, []);
@@ -40,8 +42,9 @@ export default function EnvironmentsPage() {
         await api.updateEnvironment(selected.id, form);
         showToast('Environment updated successfully', 'success');
       } else {
-        await api.createEnvironment(form);
-        showToast('Environment created successfully', 'success');
+        const created = await api.createEnvironment(form);
+        setActiveEnvironmentId(created.id);
+        showToast('Environment created & selected — variables will be used in endpoint runs', 'success');
       }
       setShowForm(false);
       setSelected(null);
