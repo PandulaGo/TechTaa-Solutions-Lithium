@@ -1,5 +1,6 @@
 import express from 'express';
 import cors from 'cors';
+import { config } from './config';
 import endpointsRouter from './routes/endpoints';
 import collectionsRouter from './routes/collections';
 import schedulesRouter from './routes/schedules';
@@ -9,12 +10,12 @@ import dashboardRouter from './routes/dashboard';
 import environmentsRouter from './routes/environments';
 import collectionRunsRouter from './routes/collectionRuns';
 import schedulerRouter from './routes/scheduler';
+import { startScheduler } from './services/scheduleRunner';
 
 const app = express();
-const PORT = 10021;
 
-app.use(cors());
-app.use(express.json({ limit: '10mb' }));
+app.use(cors({ origin: config.Server.CorsOrigins }));
+app.use(express.json({ limit: `${config.Server.JsonBodyLimitMb}mb` }));
 
 app.use('/api/endpoints', endpointsRouter);
 app.use('/api/collections', collectionsRouter);
@@ -30,6 +31,10 @@ app.get('/api/health', (_req, res) => {
   res.json({ status: 'ok' });
 });
 
-app.listen(PORT, () => {
-  console.log(`Lithium API server running on http://localhost:${PORT}`);
+app.listen(config.Server.Port, config.Server.Host, () => {
+  console.log(`Lithium API server running on http://${config.Server.Host}:${config.Server.Port}`);
 });
+
+if (config.Scheduler.AutoStart) {
+  startScheduler();
+}

@@ -2,6 +2,7 @@ import type { ApiEndpoint, ExecutionResult } from '../types';
 import https from 'node:https';
 import http from 'node:http';
 import { interpolateEndpoint } from './variableInterpolation';
+import { config } from '../config';
 
 function isLocalhost(url: string): boolean {
   try {
@@ -24,7 +25,7 @@ function fetchLocalhost(urlStr: string, method: string, headers: Record<string, 
       path: url.pathname + url.search,
       method,
       headers,
-      rejectUnauthorized: false,
+      rejectUnauthorized: config.Http.AllowSelfSignedForLocalhost,
     };
 
     const req = client.request(options, (res) => {
@@ -162,7 +163,7 @@ export async function executeEndpoint(endpoint: ApiEndpoint, environmentId: numb
         fetchOptions.body = resolvedEndpoint.body;
       }
 
-      const signal = AbortSignal.timeout(30000);
+      const signal = AbortSignal.timeout(config.Http.RequestTimeoutMs);
       const response = await fetch(url, { ...fetchOptions, signal });
 
       statusCode = response.status;

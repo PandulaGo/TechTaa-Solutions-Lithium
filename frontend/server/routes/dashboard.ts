@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import db from '../db';
+import { config } from '../config';
 import type { DashboardStats } from '../types';
 
 const router = Router();
@@ -61,7 +62,7 @@ router.get('/', (req, res) => {
       ) latest ON r.ApiEndpointId = latest.ApiEndpointId AND r.ExecutedAt = latest.MaxDate
       GROUP BY c.Id
       ORDER BY lastRunAt DESC
-      LIMIT 5
+      LIMIT ${config.Dashboard.RecentCollectionsLimit}
     `).all();
 
     const recentEndpoints = db.prepare(`
@@ -82,7 +83,7 @@ router.get('/', (req, res) => {
         GROUP BY ApiEndpointId
       ) latest ON r.ApiEndpointId = latest.ApiEndpointId AND r.ExecutedAt = latest.MaxDate
       ORDER BY r.ExecutedAt DESC
-      LIMIT 25
+      LIMIT ${config.Dashboard.RecentEndpointsLimit}
     `).all();
 
     res.json({

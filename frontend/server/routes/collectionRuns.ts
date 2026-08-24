@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import db from '../db';
+import { config } from '../config';
 import type { CollectionRun, CollectionRunResult } from '../types';
 
 const router = Router();
@@ -7,7 +8,7 @@ const router = Router();
 router.get('/', (req, res) => {
   try {
     const rows = db.prepare(`
-      SELECT * FROM CollectionRuns ORDER BY StartedAt DESC LIMIT 10
+      SELECT * FROM CollectionRuns ORDER BY StartedAt DESC LIMIT ${config.Dashboard.RecentRunsLimit}
     `).all() as any[];
 
     const runs: CollectionRun[] = rows.map(r => ({

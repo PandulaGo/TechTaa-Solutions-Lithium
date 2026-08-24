@@ -62,6 +62,15 @@
 - **Font size stored in localStorage** — under key `lithium-font-size`, applied via `document.documentElement.style.fontSize`.
 - **No auto-refresh on Dashboard** — removed 5-second `setInterval` to prevent interrupting user edits.
 
+## A6. Configuration Management
+
+- **Single source of truth:** `frontend/appsettings.json` is the *only* configuration file for server and Vite startup settings. It holds the API host/port (`Server.Host`, `Server.Port`), CORS origins, JSON body limit, Vite dev port and API proxy target (`Frontend.Port`, `Frontend.ApiBaseUrl`), database path and pragma toggles, HTTP request timeout and localhost self-signed bypass, scheduler tick interval and auto-start flag, dashboard/recent-run list limits, and results page sizes.
+- **Loading mechanism:** Backend reads it once at startup via `frontend/server/config.ts` (`fs.readFileSync`, deep-merged over built-in defaults so a missing or partial file never crashes boot). `vite.config.ts` performs its own equivalent read for `Frontend.*` values.
+- **Going-forward rule:** Every new server or startup setting MUST be added to `appsettings.json` (plus the matching interface + default in `config.ts`) and consumed from `config` — no new hardcoded literals or ports inside route/service files.
+- **Restart required:** Changes to this file take effect only after restarting the API process and/or the Vite dev server.
+- **Scope note:** Browser-side UI defaults (font size, localStorage keys) intentionally remain React constants; they cannot read disk files and are not injected at build time.
+- **Security note:** Default `Server.Host` is `127.0.0.1` (local-only). Setting it to `0.0.0.0` exposes the unauthenticated API to the network.
+
 ---
 
 # PART B — Database Schema & Data Models Matrix

@@ -1,4 +1,5 @@
 import db from '../db';
+import { config } from '../config';
 import { startCollectionRun } from './collectionRunner';
 import { getDefaultEnvironmentId } from './variableInterpolation';
 import type { Schedule } from '../types';
@@ -99,7 +100,7 @@ export function startScheduler(): void {
   if (intervalId) return;
   isRunning = true;
   tick();
-  intervalId = setInterval(tick, 1000);
+  intervalId = setInterval(tick, config.Scheduler.TickIntervalMs);
   console.log('ScheduleRunner started');
 }
 

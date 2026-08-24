@@ -1,13 +1,11 @@
 import Database from 'better-sqlite3';
-import path from 'path';
-import { fileURLToPath } from 'url';
+import { config, resolveDbPath } from './config';
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const DB_PATH = path.join(__dirname, '..', 'lithium.db');
+const DB_PATH = resolveDbPath();
 
 const db = new Database(DB_PATH);
-db.pragma('journal_mode = WAL');
-db.pragma('foreign_keys = ON');
+if (config.Database.EnableWalMode) db.pragma('journal_mode = WAL');
+if (config.Database.EnableForeignKeys) db.pragma('foreign_keys = ON');
 
 db.exec(`
   CREATE TABLE IF NOT EXISTS Collections (
@@ -31,20 +29,19 @@ db.exec(`
     AuthType TEXT NOT NULL DEFAULT 'None',
     AuthConfig TEXT,
     CreatedAt TEXT NOT NULL DEFAULT (datetime('now')),
-    UpdatedAt TEXT NOT NULL DEFAULT (datetime('now')),
-    FOREIGN KEY (CollectionId) REFERENCES Collections(Id) ON DELETE SET NULL
+    UpdatedAt TEXT NOT NULL DEFAULT (datetime('now'))
   );
 
   CREATE TABLE IF NOT EXISTS Schedules (
     Id INTEGER PRIMARY KEY AUTOINCREMENT,
-    CollectionId INTEGER NOT NULL,
+    ApiEndpointId INTEGER NOT NULL,
     IsEnabled INTEGER NOT NULL DEFAULT 1,
     IntervalSeconds INTEGER NOT NULL DEFAULT 60,
     LastRunAt TEXT,
     NextRunAt TEXT,
     CreatedAt TEXT NOT NULL DEFAULT (datetime('now')),
     UpdatedAt TEXT NOT NULL DEFAULT (datetime('now')),
-    FOREIGN KEY (CollectionId) REFERENCES Collections(Id) ON DELETE CASCADE
+    FOREIGN KEY (ApiEndpointId) REFERENCES ApiEndpoints(Id) ON DELETE CASCADE
   );
 
   CREATE TABLE IF NOT EXISTS ApiResults (
@@ -60,7 +57,7 @@ db.exec(`
     IsSuccess INTEGER NOT NULL DEFAULT 0,
     ErrorMessage TEXT,
     ExecutedAt TEXT NOT NULL DEFAULT (datetime('now')),
-    FOREIGN KEY (ApiEndpointId) REFERENCES ApiEndpoints(Id) ON DELETE SET NULL
+    FOREIGN KEY (ApiEndpointId) REFERENCES ApiEndpoints(Id) ON DELETE CASCADE
   );
 
   CREATE TABLE IF NOT EXISTS ValidationRules (
