@@ -60,3 +60,6 @@ nunit-*.xml
 frontend/node_modules/
 frontend/dist/
 *.tsbuildinfo
+
+*.db 
+*.sqlite
