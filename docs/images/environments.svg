@@ -1,0 +1,120 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 675" width="1200" height="675">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#f9fafb"/>
+      <stop offset="100%" style="stop-color:#f3f4f6"/>
+    </linearGradient>
+    <linearGradient id="sidebar" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#111827"/>
+      <stop offset="100%" style="stop-color:#1f2937"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1200" height="675" fill="url(#bg)"/>
+
+  <!-- Sidebar -->
+  <rect x="0" y="0" width="200" height="675" fill="url(#sidebar)"/>
+  <text x="24" y="40" font-family="Arial, sans-serif" font-size="20" font-weight="bold" fill="#a78bfa">Lithium</text>
+  <text x="24" y="60" font-family="Arial, sans-serif" font-size="11" fill="#9ca3af">API Testing &amp; Monitoring</text>
+
+  <!-- Sidebar nav items -->
+  <text x="30" y="111" font-family="Arial, sans-serif" font-size="13" fill="#9ca3af">◉ Dashboard</text>
+  <text x="30" y="151" font-family="Arial, sans-serif" font-size="13" fill="#9ca3af">⬡ Endpoints</text>
+  <rect x="12" y="170" width="176" height="32" rx="6" fill="#7c3aed" opacity="0.3"/>
+  <text x="30" y="191" font-family="Arial, sans-serif" font-size="13" fill="#c4b5fd">⚙ Environments</text>
+  <text x="30" y="231" font-family="Arial, sans-serif" font-size="13" fill="#9ca3af">☰ Results</text>
+  <text x="30" y="271" font-family="Arial, sans-serif" font-size="13" fill="#9ca3af">⇅ Export/Import</text>
+  <text x="30" y="311" font-family="Arial, sans-serif" font-size="13" fill="#9ca3af">? Reference</text>
+
+  <!-- Sidebar bottom -->
+  <rect x="12" y="600" width="176" height="32" rx="6" fill="#374151" opacity="0.5"/>
+  <text x="30" y="621" font-family="Arial, sans-serif" font-size="12" fill="#d1d5db">☾ Dark Mode</text>
+
+  <!-- Main content -->
+  <text x="230" y="40" font-family="Arial, sans-serif" font-size="22" font-weight="bold" fill="#111827">Environments</text>
+
+  <!-- Add button -->
+  <rect x="1060" y="22" width="125" height="32" rx="6" fill="#7c3aed"/>
+  <text x="1075" y="43" font-family="Arial, sans-serif" font-size="12" fill="#ffffff">+ New Environment</text>
+
+  <!-- Environment card 1 -->
+  <rect x="230" y="70" width="955" height="170" rx="8" fill="#ffffff" stroke="#e5e7eb"/>
+  <rect x="230" y="70" width="955" height="40" rx="8" fill="#f9fafb"/>
+  <rect x="230" y="100" width="955" height="10" fill="#f9fafb"/>
+  <text x="245" y="96" font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="#111827">Production</text>
+  <rect x="350" y="80" width="70" height="20" rx="10" fill="#dcfce7"/>
+  <text x="362" y="94" font-family="Arial, sans-serif" font-size="10" fill="#15803d">Default</text>
+  <text x="245" y="125" font-family="Arial, sans-serif" font-size="12" fill="#6b7280">Production environment for live API testing</text>
+
+  <!-- Variables table -->
+  <text x="245" y="155" font-family="Arial, sans-serif" font-size="11" font-weight="bold" fill="#374151">Variables</text>
+  <line x1="245" y1="165" x2="1170" y2="165" stroke="#e5e7eb" stroke-width="1"/>
+
+  <text x="245" y="185" font-family="Arial, sans-serif" font-size="11" fill="#6b7280">Key</text>
+  <text x="500" y="185" font-family="Arial, sans-serif" font-size="11" fill="#6b7280">Value</text>
+  <text x="900" y="185" font-family="Arial, sans-serif" font-size="11" fill="#6b7280">Actions</text>
+
+  <line x1="245" y1="195" x2="1170" y2="195" stroke="#f3f4f6" stroke-width="1"/>
+
+  <text x="245" y="215" font-family="Arial, sans-serif" font-size="12" fill="#111827">API_BASE_URL</text>
+  <text x="500" y="215" font-family="Arial, sans-serif" font-size="12" fill="#6b7280">https://api.example.com</text>
+  <text x="900" y="215" font-family="Arial, sans-serif" font-size="11" fill="#2563eb">Edit</text>
+  <text x="950" y="215" font-family="Arial, sans-serif" font-size="11" fill="#dc2626">Delete</text>
+
+  <line x1="245" y1="225" x2="1170" y2="225" stroke="#f3f4f6" stroke-width="1"/>
+
+  <text x="245" y="240" font-family="Arial, sans-serif" font-size="12" fill="#111827">API_KEY</text>
+  <text x="500" y="240" font-family="Arial, sans-serif" font-size="12" fill="#6b7280">••••••••••••••••</text>
+  <text x="900" y="240" font-family="Arial, sans-serif" font-size="11" fill="#2563eb">Edit</text>
+  <text x="950" y="240" font-family="Arial, sans-serif" font-size="11" fill="#dc2626">Delete</text>
+
+  <!-- Environment card 2 -->
+  <rect x="230" y="260" width="955" height="170" rx="8" fill="#ffffff" stroke="#e5e7eb"/>
+  <rect x="230" y="260" width="955" height="40" rx="8" fill="#f9fafb"/>
+  <rect x="230" y="290" width="955" height="10" fill="#f9fafb"/>
+  <text x="245" y="286" font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="#111827">Staging</text>
+  <text x="245" y="315" font-family="Arial, sans-serif" font-size="12" fill="#6b7280">Staging environment for pre-release testing</text>
+
+  <text x="245" y="345" font-family="Arial, sans-serif" font-size="11" font-weight="bold" fill="#374151">Variables</text>
+  <line x1="245" y1="355" x2="1170" y2="355" stroke="#e5e7eb" stroke-width="1"/>
+
+  <text x="245" y="375" font-family="Arial, sans-serif" font-size="11" fill="#6b7280">Key</text>
+  <text x="500" y="375" font-family="Arial, sans-serif" font-size="11" fill="#6b7280">Value</text>
+  <text x="900" y="375" font-family="Arial, sans-serif" font-size="11" fill="#6b7280">Actions</text>
+
+  <line x1="245" y1="385" x2="1170" y2="385" stroke="#f3f4f6" stroke-width="1"/>
+
+  <text x="245" y="405" font-family="Arial, sans-serif" font-size="12" fill="#111827">API_BASE_URL</text>
+  <text x="500" y="405" font-family="Arial, sans-serif" font-size="12" fill="#6b7280">https://staging.example.com</text>
+  <text x="900" y="405" font-family="Arial, sans-serif" font-size="11" fill="#2563eb">Edit</text>
+  <text x="950" y="405" font-family="Arial, sans-serif" font-size="11" fill="#dc2626">Delete</text>
+
+  <!-- Environment card 3 -->
+  <rect x="230" y="450" width="955" height="170" rx="8" fill="#ffffff" stroke="#e5e7eb"/>
+  <rect x="230" y="450" width="955" height="40" rx="8" fill="#f9fafb"/>
+  <rect x="230" y="480" width="955" height="10" fill="#f9fafb"/>
+  <text x="245" y="476" font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="#111827">Development</text>
+  <text x="245" y="505" font-family="Arial, sans-serif" font-size="12" fill="#6b7280">Local development environment</text>
+
+  <text x="245" y="535" font-family="Arial, sans-serif" font-size="11" font-weight="bold" fill="#374151">Variables</text>
+  <line x1="245" y1="545" x2="1170" y2="545" stroke="#e5e7eb" stroke-width="1"/>
+
+  <text x="245" y="565" font-family="Arial, sans-serif" font-size="11" fill="#6b7280">Key</text>
+  <text x="500" y="565" font-family="Arial, sans-serif" font-size="11" fill="#6b7280">Value</text>
+  <text x="900" y="565" font-family="Arial, sans-serif" font-size="11" fill="#6b7280">Actions</text>
+
+  <line x1="245" y1="575" x2="1170" y2="575" stroke="#f3f4f6" stroke-width="1"/>
+
+  <text x="245" y="595" font-family="Arial, sans-serif" font-size="12" fill="#111827">API_BASE_URL</text>
+  <text x="500" y="595" font-family="Arial, sans-serif" font-size="12" fill="#6b7280">http://localhost:3000</text>
+  <text x="900" y="595" font-family="Arial, sans-serif" font-size="11" fill="#2563eb">Edit</text>
+  <text x="950" y="595" font-family="Arial, sans-serif" font-size="11" fill="#dc2626">Delete</text>
+
+  <line x1="245" y1="605" x2="1170" y2="605" stroke="#f3f4f6" stroke-width="1"/>
+
+  <text x="245" y="620" font-family="Arial, sans-serif" font-size="12" fill="#111827">DEBUG_MODE</text>
+  <text x="500" y="620" font-family="Arial, sans-serif" font-size="12" fill="#6b7280">true</text>
+  <text x="900" y="620" font-family="Arial, sans-serif" font-size="11" fill="#2563eb">Edit</text>
+  <text x="950" y="620" font-family="Arial, sans-serif" font-size="11" fill="#dc2626">Delete</text>
+</svg>

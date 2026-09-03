@@ -1,0 +1,213 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 675" width="1200" height="675">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#f9fafb"/>
+      <stop offset="100%" style="stop-color:#f3f4f6"/>
+    </linearGradient>
+    <linearGradient id="sidebar" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#111827"/>
+      <stop offset="100%" style="stop-color:#1f2937"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1200" height="675" fill="url(#bg)"/>
+
+  <!-- Sidebar -->
+  <rect x="0" y="0" width="200" height="675" fill="url(#sidebar)"/>
+  <text x="24" y="40" font-family="Arial, sans-serif" font-size="20" font-weight="bold" fill="#a78bfa">Lithium</text>
+  <text x="24" y="60" font-family="Arial, sans-serif" font-size="11" fill="#9ca3af">API Testing &amp; Monitoring</text>
+
+  <!-- Sidebar nav items -->
+  <text x="30" y="111" font-family="Arial, sans-serif" font-size="13" fill="#9ca3af">◉ Dashboard</text>
+  <rect x="12" y="130" width="176" height="32" rx="6" fill="#7c3aed" opacity="0.3"/>
+  <text x="30" y="151" font-family="Arial, sans-serif" font-size="13" fill="#c4b5fd">⬡ Endpoints</text>
+  <text x="30" y="191" font-family="Arial, sans-serif" font-size="13" fill="#9ca3af">⚙ Environments</text>
+  <text x="30" y="231" font-family="Arial, sans-serif" font-size="13" fill="#9ca3af">☰ Results</text>
+  <text x="30" y="271" font-family="Arial, sans-serif" font-size="13" fill="#9ca3af">⇅ Export/Import</text>
+  <text x="30" y="311" font-family="Arial, sans-serif" font-size="13" fill="#9ca3af">? Reference</text>
+
+  <!-- Sidebar bottom -->
+  <rect x="12" y="600" width="176" height="32" rx="6" fill="#374151" opacity="0.5"/>
+  <text x="30" y="621" font-family="Arial, sans-serif" font-size="12" fill="#d1d5db">☾ Dark Mode</text>
+
+  <!-- Main content -->
+  <text x="230" y="40" font-family="Arial, sans-serif" font-size="22" font-weight="bold" fill="#111827">Endpoints</text>
+
+  <!-- Action buttons -->
+  <rect x="980" y="22" width="110" height="32" rx="6" fill="#7c3aed"/>
+  <text x="1000" y="43" font-family="Arial, sans-serif" font-size="12" fill="#ffffff">+ New Endpoint</text>
+  <rect x="880" y="22" width="90" height="32" rx="6" fill="#ffffff" stroke="#e5e7eb"/>
+  <text x="900" y="43" font-family="Arial, sans-serif" font-size="12" fill="#374151">Collapse All</text>
+  <rect x="790" y="22" width="80" height="32" rx="6" fill="#ffffff" stroke="#e5e7eb"/>
+  <text x="810" y="43" font-family="Arial, sans-serif" font-size="12" fill="#374151">Expand All</text>
+
+  <!-- Filter buttons -->
+  <rect x="230" y="65" width="45" height="26" rx="6" fill="#7c3aed"/>
+  <text x="245" y="82" font-family="Arial, sans-serif" font-size="11" fill="#ffffff">All</text>
+  <rect x="285" y="65" width="95" height="26" rx="6" fill="#f3f4f6" stroke="#e5e7eb"/>
+  <text x="298" y="82" font-family="Arial, sans-serif" font-size="11" fill="#374151">Has Schedule</text>
+  <rect x="390" y="65" width="100" height="26" rx="6" fill="#f3f4f6" stroke="#e5e7eb"/>
+  <text x="403" y="82" font-family="Arial, sans-serif" font-size="11" fill="#374151">Has Validation</text>
+  <rect x="500" y="65" width="85" height="26" rx="6" fill="#f3f4f6" stroke="#e5e7eb"/>
+  <text x="513" y="82" font-family="Arial, sans-serif" font-size="11" fill="#374151">Has Both</text>
+
+  <!-- Search bar -->
+  <rect x="230" y="105" width="955" height="36" rx="8" fill="#ffffff" stroke="#e5e7eb"/>
+  <text x="250" y="128" font-family="Arial, sans-serif" font-size="12" fill="#9ca3af">🔍 Search endpoints by name, URL, method...</text>
+
+  <!-- Collection group 1 -->
+  <rect x="230" y="155" width="955" height="220" rx="8" fill="#ffffff" stroke="#e5e7eb"/>
+  <rect x="230" y="155" width="955" height="36" rx="8" fill="#f9fafb"/>
+  <rect x="230" y="180" width="955" height="11" fill="#f9fafb"/>
+  <rect x="245" y="166" width="14" height="14" rx="3" fill="#ffffff" stroke="#d1d5db"/>
+  <text x="270" y="178" font-family="Arial, sans-serif" font-size="13" font-weight="bold" fill="#111827">User Service</text>
+  <rect x="380" y="164" width="80" height="20" rx="10" fill="#ede9fe"/>
+  <text x="395" y="178" font-family="Arial, sans-serif" font-size="10" fill="#7c3aed">5 endpoints</text>
+
+  <!-- Table header -->
+  <text x="245" y="215" font-family="Arial, sans-serif" font-size="11" fill="#6b7280">Name</text>
+  <text x="420" y="215" font-family="Arial, sans-serif" font-size="11" fill="#6b7280">Method</text>
+  <text x="520" y="215" font-family="Arial, sans-serif" font-size="11" fill="#6b7280">URL</text>
+  <text x="760" y="215" font-family="Arial, sans-serif" font-size="11" fill="#6b7280">Auth</text>
+  <text x="840" y="215" font-family="Arial, sans-serif" font-size="11" fill="#6b7280">Schedule</text>
+  <text x="930" y="215" font-family="Arial, sans-serif" font-size="11" fill="#6b7280">Validation</text>
+  <text x="1030" y="215" font-family="Arial, sans-serif" font-size="11" fill="#6b7280">Actions</text>
+
+  <line x1="230" y1="225" x2="1185" y2="225" stroke="#e5e7eb" stroke-width="1"/>
+
+  <!-- Row 1 -->
+  <rect x="245" y="236" width="14" height="14" rx="3" fill="#ffffff" stroke="#d1d5db"/>
+  <text x="270" y="250" font-family="Arial, sans-serif" font-size="12" fill="#111827">Get Users</text>
+  <rect x="410" y="237" width="42" height="18" rx="4" fill="#dcfce7"/>
+  <text x="418" y="250" font-family="Arial, sans-serif" font-size="10" fill="#15803d">GET</text>
+  <text x="520" y="250" font-family="Arial, sans-serif" font-size="11" fill="#6b7280">https://api.example.com/users</text>
+  <text x="760" y="250" font-family="Arial, sans-serif" font-size="11" fill="#6b7280">Bearer</text>
+  <rect x="835" y="237" width="48" height="18" rx="4" fill="#ccfbf1"/>
+  <text x="843" y="250" font-family="Arial, sans-serif" font-size="10" fill="#0f766e">1m</text>
+  <rect x="925" y="237" width="52" height="18" rx="4" fill="#ffedd5"/>
+  <text x="933" y="250" font-family="Arial, sans-serif" font-size="10" fill="#c2410c">2 rules</text>
+  <text x="1030" y="250" font-family="Arial, sans-serif" font-size="11" fill="#16a34a">Run</text>
+  <text x="1070" y="250" font-family="Arial, sans-serif" font-size="11" fill="#2563eb">Edit</text>
+  <text x="1110" y="250" font-family="Arial, sans-serif" font-size="11" fill="#0d9488">Sched</text>
+  <text x="1155" y="250" font-family="Arial, sans-serif" font-size="11" fill="#ea580c">Val</text>
+
+  <line x1="230" y1="265" x2="1185" y2="265" stroke="#f3f4f6" stroke-width="1"/>
+
+  <!-- Row 2 -->
+  <rect x="245" y="276" width="14" height="14" rx="3" fill="#ffffff" stroke="#d1d5db"/>
+  <text x="270" y="290" font-family="Arial, sans-serif" font-size="12" fill="#111827">Create User</text>
+  <rect x="410" y="277" width="42" height="18" rx="4" fill="#dbeafe"/>
+  <text x="414" y="290" font-family="Arial, sans-serif" font-size="10" fill="#1d4ed8">POST</text>
+  <text x="520" y="290" font-family="Arial, sans-serif" font-size="11" fill="#6b7280">https://api.example.com/users</text>
+  <text x="760" y="290" font-family="Arial, sans-serif" font-size="11" fill="#6b7280">Bearer</text>
+  <rect x="835" y="277" width="48" height="18" rx="4" fill="#ccfbf1"/>
+  <text x="843" y="290" font-family="Arial, sans-serif" font-size="10" fill="#0f766e">5m</text>
+  <text x="930" y="290" font-family="Arial, sans-serif" font-size="11" fill="#9ca3af">—</text>
+  <text x="1030" y="290" font-family="Arial, sans-serif" font-size="11" fill="#16a34a">Run</text>
+  <text x="1070" y="290" font-family="Arial, sans-serif" font-size="11" fill="#2563eb">Edit</text>
+  <text x="1110" y="290" font-family="Arial, sans-serif" font-size="11" fill="#0d9488">Sched</text>
+  <text x="1155" y="290" font-family="Arial, sans-serif" font-size="11" fill="#ea580c">Val</text>
+
+  <line x1="230" y1="305" x2="1185" y2="305" stroke="#f3f4f6" stroke-width="1"/>
+
+  <!-- Row 3 -->
+  <rect x="245" y="316" width="14" height="14" rx="3" fill="#ffffff" stroke="#d1d5db"/>
+  <text x="270" y="330" font-family="Arial, sans-serif" font-size="12" fill="#111827">Update User</text>
+  <rect x="410" y="317" width="42" height="18" rx="4" fill="#fef9c3"/>
+  <text x="418" y="330" font-family="Arial, sans-serif" font-size="10" fill="#a16207">PUT</text>
+  <text x="520" y="330" font-family="Arial, sans-serif" font-size="11" fill="#6b7280">https://api.example.com/users/1</text>
+  <text x="760" y="330" font-family="Arial, sans-serif" font-size="11" fill="#6b7280">None</text>
+  <text x="840" y="330" font-family="Arial, sans-serif" font-size="11" fill="#9ca3af">—</text>
+  <rect x="925" y="317" width="52" height="18" rx="4" fill="#ffedd5"/>
+  <text x="933" y="330" font-family="Arial, sans-serif" font-size="10" fill="#c2410c">1 rule</text>
+  <text x="1030" y="330" font-family="Arial, sans-serif" font-size="11" fill="#16a34a">Run</text>
+  <text x="1070" y="330" font-family="Arial, sans-serif" font-size="11" fill="#2563eb">Edit</text>
+  <text x="1110" y="330" font-family="Arial, sans-serif" font-size="11" fill="#0d9488">Sched</text>
+  <text x="1155" y="330" font-family="Arial, sans-serif" font-size="11" fill="#ea580c">Val</text>
+
+  <line x1="230" y1="345" x2="1185" y2="345" stroke="#f3f4f6" stroke-width="1"/>
+
+  <!-- Row 4 -->
+  <rect x="245" y="356" width="14" height="14" rx="3" fill="#ffffff" stroke="#d1d5db"/>
+  <text x="270" y="370" font-family="Arial, sans-serif" font-size="12" fill="#111827">Delete User</text>
+  <rect x="410" y="357" width="52" height="18" rx="4" fill="#fee2e2"/>
+  <text x="418" y="370" font-family="Arial, sans-serif" font-size="10" fill="#b91c1c">DELETE</text>
+  <text x="520" y="370" font-family="Arial, sans-serif" font-size="11" fill="#6b7280">https://api.example.com/users/1</text>
+  <text x="760" y="370" font-family="Arial, sans-serif" font-size="11" fill="#6b7280">None</text>
+  <text x="840" y="370" font-family="Arial, sans-serif" font-size="11" fill="#9ca3af">—</text>
+  <text x="930" y="370" font-family="Arial, sans-serif" font-size="11" fill="#9ca3af">—</text>
+  <text x="1030" y="370" font-family="Arial, sans-serif" font-size="11" fill="#16a34a">Run</text>
+  <text x="1070" y="370" font-family="Arial, sans-serif" font-size="11" fill="#2563eb">Edit</text>
+  <text x="1110" y="370" font-family="Arial, sans-serif" font-size="11" fill="#0d9488">Sched</text>
+  <text x="1155" y="370" font-family="Arial, sans-serif" font-size="11" fill="#ea580c">Val</text>
+
+  <!-- Collection group 2 -->
+  <rect x="230" y="390" width="955" height="180" rx="8" fill="#ffffff" stroke="#e5e7eb"/>
+  <rect x="230" y="390" width="955" height="36" rx="8" fill="#f9fafb"/>
+  <rect x="230" y="415" width="955" height="11" fill="#f9fafb"/>
+  <rect x="245" y="401" width="14" height="14" rx="3" fill="#ffffff" stroke="#d1d5db"/>
+  <text x="270" y="413" font-family="Arial, sans-serif" font-size="13" font-weight="bold" fill="#111827">Payment API</text>
+  <rect x="380" y="399" width="80" height="20" rx="10" fill="#ede9fe"/>
+  <text x="395" y="413" font-family="Arial, sans-serif" font-size="10" fill="#7c3aed">4 endpoints</text>
+
+  <text x="245" y="450" font-family="Arial, sans-serif" font-size="11" fill="#6b7280">Name</text>
+  <text x="420" y="450" font-family="Arial, sans-serif" font-size="11" fill="#6b7280">Method</text>
+  <text x="520" y="450" font-family="Arial, sans-serif" font-size="11" fill="#6b7280">URL</text>
+  <text x="760" y="450" font-family="Arial, sans-serif" font-size="11" fill="#6b7280">Auth</text>
+  <text x="840" y="450" font-family="Arial, sans-serif" font-size="11" fill="#6b7280">Schedule</text>
+  <text x="930" y="450" font-family="Arial, sans-serif" font-size="11" fill="#6b7280">Validation</text>
+  <text x="1030" y="450" font-family="Arial, sans-serif" font-size="11" fill="#6b7280">Actions</text>
+
+  <line x1="230" y1="460" x2="1185" y2="460" stroke="#e5e7eb" stroke-width="1"/>
+
+  <!-- Row 1 -->
+  <rect x="245" y="471" width="14" height="14" rx="3" fill="#ffffff" stroke="#d1d5db"/>
+  <text x="270" y="485" font-family="Arial, sans-serif" font-size="12" fill="#111827">Create Payment</text>
+  <rect x="410" y="472" width="42" height="18" rx="4" fill="#dbeafe"/>
+  <text x="414" y="485" font-family="Arial, sans-serif" font-size="10" fill="#1d4ed8">POST</text>
+  <text x="520" y="485" font-family="Arial, sans-serif" font-size="11" fill="#6b7280">https://api.example.com/payments</text>
+  <text x="760" y="485" font-family="Arial, sans-serif" font-size="11" fill="#6b7280">ApiKey</text>
+  <rect x="835" y="472" width="48" height="18" rx="4" fill="#ccfbf1"/>
+  <text x="843" y="485" font-family="Arial, sans-serif" font-size="10" fill="#0f766e">1m</text>
+  <rect x="925" y="472" width="52" height="18" rx="4" fill="#ffedd5"/>
+  <text x="933" y="485" font-family="Arial, sans-serif" font-size="10" fill="#c2410c">3 rules</text>
+  <text x="1030" y="485" font-family="Arial, sans-serif" font-size="11" fill="#16a34a">Run</text>
+  <text x="1070" y="485" font-family="Arial, sans-serif" font-size="11" fill="#2563eb">Edit</text>
+  <text x="1110" y="485" font-family="Arial, sans-serif" font-size="11" fill="#0d9488">Sched</text>
+  <text x="1155" y="485" font-family="Arial, sans-serif" font-size="11" fill="#ea580c">Val</text>
+
+  <line x1="230" y1="500" x2="1185" y2="500" stroke="#f3f4f6" stroke-width="1"/>
+
+  <!-- Row 2 -->
+  <rect x="245" y="511" width="14" height="14" rx="3" fill="#ffffff" stroke="#d1d5db"/>
+  <text x="270" y="525" font-family="Arial, sans-serif" font-size="12" fill="#111827">Get Payment</text>
+  <rect x="410" y="512" width="42" height="18" rx="4" fill="#dcfce7"/>
+  <text x="418" y="525" font-family="Arial, sans-serif" font-size="10" fill="#15803d">GET</text>
+  <text x="520" y="525" font-family="Arial, sans-serif" font-size="11" fill="#6b7280">https://api.example.com/payments/1</text>
+  <text x="760" y="525" font-family="Arial, sans-serif" font-size="11" fill="#6b7280">ApiKey</text>
+  <text x="840" y="525" font-family="Arial, sans-serif" font-size="11" fill="#9ca3af">—</text>
+  <rect x="925" y="512" width="52" height="18" rx="4" fill="#ffedd5"/>
+  <text x="933" y="525" font-family="Arial, sans-serif" font-size="10" fill="#c2410c">1 rule</text>
+  <text x="1030" y="525" font-family="Arial, sans-serif" font-size="11" fill="#16a34a">Run</text>
+  <text x="1070" y="525" font-family="Arial, sans-serif" font-size="11" fill="#2563eb">Edit</text>
+  <text x="1110" y="525" font-family="Arial, sans-serif" font-size="11" fill="#0d9488">Sched</text>
+  <text x="1155" y="525" font-family="Arial, sans-serif" font-size="11" fill="#ea580c">Val</text>
+
+  <!-- Uncategorized group -->
+  <rect x="230" y="585" width="955" height="80" rx="8" fill="#ffffff" stroke="#e5e7eb"/>
+  <rect x="230" y="585" width="955" height="36" rx="8" fill="#f9fafb"/>
+  <rect x="230" y="610" width="955" height="11" fill="#f9fafb"/>
+  <rect x="245" y="596" width="14" height="14" rx="3" fill="#ffffff" stroke="#d1d5db"/>
+  <text x="270" y="608" font-family="Arial, sans-serif" font-size="13" font-weight="bold" fill="#111827">Uncategorized</text>
+  <rect x="380" y="594" width="80" height="20" rx="10" fill="#ede9fe"/>
+  <text x="395" y="608" font-family="Arial, sans-serif" font-size="10" fill="#7c3aed">3 endpoints</text>
+
+  <text x="245" y="645" font-family="Arial, sans-serif" font-size="11" fill="#6b7280">Name</text>
+  <text x="420" y="645" font-family="Arial, sans-serif" font-size="11" fill="#6b7280">Method</text>
+  <text x="520" y="645" font-family="Arial, sans-serif" font-size="11" fill="#6b7280">URL</text>
+  <text x="760" y="645" font-family="Arial, sans-serif" font-size="11" fill="#6b7280">Auth</text>
+  <text x="840" y="645" font-family="Arial, sans-serif" font-size="11" fill="#6b7280">Schedule</text>
+  <text x="930" y="645" font-family="Arial, sans-serif" font-size="11" fill="#6b7280">Validation</text>
+  <text x="1030" y="645" font-family="Arial, sans-serif" font-size="11" fill="#6b7280">Actions</text>
+</svg>
