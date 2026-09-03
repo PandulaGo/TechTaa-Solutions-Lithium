@@ -25,9 +25,10 @@ export function interpolateVariables(text: string | null, variables: Map<string,
 }
 
 export function interpolateEndpoint(endpoint: { url: string; headers: string | null; body: string | null; authConfig: string | null }, environmentId: number | null) {
-  if (!environmentId) return endpoint;
+  const effectiveEnvId = environmentId || getDefaultEnvironmentId();
+  if (!effectiveEnvId) return endpoint;
 
-  const variables = getVariablesMap(environmentId);
+  const variables = getVariablesMap(effectiveEnvId);
 
   return {
     ...endpoint,

@@ -22,20 +22,19 @@ export interface ApiEndpoint {
   createdAt: string;
   updatedAt: string;
   collection?: Collection | null;
-  schedules?: Schedule[];
   validationRules?: ValidationRule[];
 }
 
 export interface Schedule {
   id: number;
-  apiEndpointId: number;
+  collectionId: number;
   isEnabled: boolean;
   intervalSeconds: number;
   lastRunAt: string | null;
   nextRunAt: string;
   createdAt: string;
   updatedAt: string;
-  apiEndpoint?: ApiEndpoint;
+  collection?: Collection;
 }
 
 export interface ApiResult {
@@ -47,6 +46,7 @@ export interface ApiResult {
   responseBody: string | null;
   requestBody: string | null;
   requestHeaders: string | null;
+  requestUrl: string | null;
   isSuccess: boolean;
   errorMessage: string | null;
   executedAt: string;

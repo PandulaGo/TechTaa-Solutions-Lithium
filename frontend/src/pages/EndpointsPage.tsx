@@ -1,4 +1,5 @@
 import { useEffect, useState, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { api } from '../services/api';
 import type { ApiEndpoint, Collection, KeyValue, Schedule, ValidationRule } from '../types';
 import KeyValueEditor from '../components/KeyValueEditor';
@@ -29,32 +30,36 @@ export default function EndpointsPage() {
   const [expandedCollections, setExpandedCollections] = useState<Set<number | 'uncategorized'>>(new Set());
   const [searchQuery, setSearchQuery] = useState('');
   const [showScheduleModal, setShowScheduleModal] = useState(false);
-  const [scheduleEndpoint, setScheduleEndpoint] = useState<ApiEndpoint | null>(null);
+  const [scheduleCollection, setScheduleCollection] = useState<Collection | null>(null);
   const [scheduleForm, setScheduleForm] = useState({ intervalSeconds: 60, isEnabled: true });
   const [showValidationModal, setShowValidationModal] = useState(false);
   const [validationEndpoint, setValidationEndpoint] = useState<ApiEndpoint | null>(null);
   const [validationForm, setValidationForm] = useState({ ruleType: 'StatusCode', expectedValue: '200', comparisonType: 'Equals', order: 0, isEnabled: true });
   const [editingRule, setEditingRule] = useState<ValidationRule | null>(null);
   const [filterType, setFilterType] = useState<'all' | 'hasSchedule' | 'hasValidation' | 'hasBoth'>('all');
+  const [schedulerRunning, setSchedulerRunning] = useState(false);
   const { showToast } = useToast();
   const { activeEnvironmentId } = useEnvironment();
   const { confirm: confirmDialog, state: confirmState } = useConfirmDialog();
+  const navigate = useNavigate();
 
   useEffect(() => { loadAll(); }, []);
 
   const loadAll = async () => {
     setLoading(true);
     try {
-      const [eps, cols, scheds, rules] = await Promise.all([
+      const [eps, cols, scheds, rules, schedStatus] = await Promise.all([
         api.getEndpoints(),
         api.getCollections(),
         api.getSchedules(),
         api.getValidationRules(),
+        api.getSchedulerStatus(),
       ]);
       setEndpoints(Array.isArray(eps) ? eps : []);
       setCollections(Array.isArray(cols) ? cols : []);
       setSchedules(Array.isArray(scheds) ? scheds : []);
       setValidationRules(Array.isArray(rules) ? rules : []);
+      setSchedulerRunning(schedStatus.running);
     } catch (e) { console.error(e); }
     finally { setLoading(false); }
   };
@@ -62,7 +67,7 @@ export default function EndpointsPage() {
   const scheduleMap = useMemo(() => {
     const map = new Map<number, Schedule>();
     for (const s of schedules) {
-      map.set(s.apiEndpointId, s);
+      map.set(s.collectionId, s);
     }
     return map;
   }, [schedules]);
@@ -100,7 +105,7 @@ export default function EndpointsPage() {
       }
 
       // Type filter
-      const hasSchedule = scheduleMap.has(ep.id);
+      const hasSchedule = ep.collectionId ? scheduleMap.has(ep.collectionId) : false;
       const hasValidation = (validationMap.get(ep.id) || []).length > 0;
 
       if (filterType === 'hasSchedule' && !hasSchedule) return false;
@@ -234,16 +239,65 @@ export default function EndpointsPage() {
     }
   };
 
+  const handleRunCollection = async (collectionId: number) => {
+    try {
+      const { runId } = await api.runCollection(collectionId, activeEnvironmentId ?? undefined);
+      navigate(`/?runId=${runId}`);
+    } catch (e: any) {
+      console.error(e);
+      showToast(e.message || 'Failed to run collection', 'error');
+    }
+  };
+
   const handleBulkRun = async () => {
     try {
-      const results = await api.bulkRun(Array.from(selectedIds), activeEnvironmentId ?? undefined);
-      const passed = results.filter((r: any) => r.isSuccess).length;
-      const failed = results.length - passed;
-      showToast(`${passed} passed, ${failed} failed out of ${results.length} endpoints`, passed === results.length ? 'success' : 'info', 'Bulk Run Complete');
-      loadAll();
+      const { runId } = await api.bulkRun(Array.from(selectedIds), activeEnvironmentId ?? undefined);
+      navigate(`/?runId=${runId}`);
     } catch (e: any) {
       console.error(e);
       showToast(e.message || 'Bulk run failed', 'error');
+    }
+  };
+
+  const handleBulkDeleteGroup = async (eps: ApiEndpoint[]) => {
+    const toDelete = selectedIds.size > 0
+      ? eps.filter(ep => selectedIds.has(ep.id))
+      : eps;
+    if (toDelete.length === 0) {
+      showToast('No endpoints selected', 'error');
+      return;
+    }
+    const confirmed = await confirmDialog(
+      `Delete ${toDelete.length} endpoint${toDelete.length !== 1 ? 's' : ''}? This cannot be undone.`,
+      'Delete Endpoints',
+      { confirmText: 'Delete', cancelText: 'Cancel', variant: 'danger' }
+    );
+    if (!confirmed) return;
+    try {
+      await api.batchDeleteEndpoints(toDelete.map(ep => ep.id));
+      setSelectedIds(new Set());
+      showToast(`${toDelete.length} endpoint${toDelete.length !== 1 ? 's' : ''} deleted`, 'success');
+      loadAll();
+    } catch (e: any) {
+      console.error(e);
+      showToast(e.message || 'Failed to delete endpoints', 'error');
+    }
+  };
+
+  const handleToggleScheduler = async () => {
+    try {
+      if (schedulerRunning) {
+        await api.stopScheduler();
+        setSchedulerRunning(false);
+        showToast('Scheduler stopped — no schedules will run', 'success');
+      } else {
+        await api.startScheduler();
+        setSchedulerRunning(true);
+        showToast('Scheduler started', 'success');
+      }
+    } catch (e: any) {
+      console.error(e);
+      showToast(e.message || 'Failed to toggle scheduler', 'error');
     }
   };
 
@@ -262,9 +316,9 @@ export default function EndpointsPage() {
     return `${Math.floor(seconds / 86400)}d`;
   };
 
-  const handleOpenScheduleModal = (ep: ApiEndpoint) => {
-    const existingSchedule = scheduleMap.get(ep.id);
-    setScheduleEndpoint(ep);
+  const handleOpenScheduleModal = (col: Collection) => {
+    const existingSchedule = scheduleMap.get(col.id);
+    setScheduleCollection(col);
     if (existingSchedule) {
       setScheduleForm({ intervalSeconds: existingSchedule.intervalSeconds, isEnabled: existingSchedule.isEnabled });
     } else {
@@ -274,18 +328,18 @@ export default function EndpointsPage() {
   };
 
   const handleSaveSchedule = async () => {
-    if (!scheduleEndpoint) return;
-    const existingSchedule = scheduleMap.get(scheduleEndpoint.id);
+    if (!scheduleCollection) return;
+    const existingSchedule = scheduleMap.get(scheduleCollection.id);
     try {
       if (existingSchedule) {
         await api.updateSchedule(existingSchedule.id, scheduleForm);
         showToast('Schedule updated successfully', 'success');
       } else {
-        await api.createSchedule(scheduleEndpoint.id, scheduleForm);
+        await api.createSchedule(scheduleCollection.id, scheduleForm);
         showToast('Schedule created successfully', 'success');
       }
       setShowScheduleModal(false);
-      setScheduleEndpoint(null);
+      setScheduleCollection(null);
       loadAll();
     } catch (e: any) {
       console.error(e);
@@ -351,12 +405,22 @@ export default function EndpointsPage() {
     <div className="space-y-4">
       <div className="flex justify-between items-center">
         <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">Endpoints</h2>
-        <div className="flex gap-2">
+        <div className="flex gap-2 items-center">
           {selectedIds.size > 0 && (
             <button onClick={handleBulkRun} className="bg-purple-700 hover:bg-purple-600 text-white text-sm px-3 py-1.5 rounded">
               Run Selected ({selectedIds.size})
             </button>
           )}
+          <button
+            onClick={handleToggleScheduler}
+            className={`text-xs px-3 py-1.5 rounded border transition-colors ${
+              schedulerRunning
+                ? 'bg-green-100 text-green-700 border-green-300 hover:bg-green-200 dark:bg-green-900/50 dark:text-green-400 dark:border-green-700 dark:hover:bg-green-900/80'
+                : 'bg-amber-100 text-amber-700 border-amber-300 hover:bg-amber-200 dark:bg-amber-900/50 dark:text-amber-400 dark:border-amber-700 dark:hover:bg-amber-900/80'
+            }`}
+          >
+            {schedulerRunning ? '■ Stop Schedules' : '▶ Start Schedules'}
+          </button>
           <button onClick={expandAll} className="text-gray-700 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 text-sm px-2 py-1.5">
             Expand All
           </button>
@@ -548,6 +612,38 @@ export default function EndpointsPage() {
                   <span className="text-xs text-purple-700 dark:text-purple-300 bg-purple-100 dark:bg-purple-900/50 px-2 py-0.5 rounded font-medium">
                     {group.endpoints.length} endpoint{group.endpoints.length !== 1 ? 's' : ''}
                   </span>
+                  {group.collection && (() => {
+                    const colSchedule = scheduleMap.get(group.collection!.id);
+                    return colSchedule ? (
+                      <span className={`text-xs px-2 py-0.5 rounded border ${colSchedule.isEnabled ? 'bg-teal-100 text-teal-700 border-teal-200 dark:bg-teal-900/50 dark:text-teal-400 dark:border-teal-700' : 'bg-gray-100 text-gray-500 border-gray-200 dark:bg-gray-800 dark:text-gray-500 dark:border-gray-700'}`}>
+                        ⏱ {formatInterval(colSchedule.intervalSeconds)}
+                      </span>
+                    ) : null;
+                  })()}
+                  <div className="ml-auto flex items-center gap-1">
+                    {group.collection && (
+                      <button
+                        onClick={(e) => { e.stopPropagation(); handleRunCollection(group.collection!.id); }}
+                        className="text-green-600 hover:text-green-700 dark:text-green-400 dark:hover:text-green-300 text-xs font-medium px-2 py-1"
+                      >
+                        Run
+                      </button>
+                    )}
+                    {group.collection && (
+                      <button
+                        onClick={(e) => { e.stopPropagation(); handleOpenScheduleModal(group.collection!); }}
+                        className="text-teal-600 hover:text-teal-700 dark:text-teal-400 dark:hover:text-teal-300 text-xs font-medium px-2 py-1"
+                      >
+                        {scheduleMap.get(group.collection.id) ? 'Edit Schedule' : '+ Schedule'}
+                      </button>
+                    )}
+                    <button
+                      onClick={(e) => { e.stopPropagation(); handleBulkDeleteGroup(group.endpoints); }}
+                      className="text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 text-xs font-medium px-2 py-1"
+                    >
+                      Delete
+                    </button>
+                  </div>
                 </div>
                 {isExpanded && (
                   <table className="w-full text-sm">
@@ -558,14 +654,12 @@ export default function EndpointsPage() {
                         <th className="p-3">Method</th>
                         <th className="p-3">URL</th>
                         <th className="p-3">Auth</th>
-                        <th className="p-3">Schedule</th>
                         <th className="p-3">Validation</th>
                         <th className="p-3">Actions</th>
                       </tr>
                     </thead>
                     <tbody>
                       {group.endpoints.map(ep => {
-                        const schedule = scheduleMap.get(ep.id);
                         const rules = validationMap.get(ep.id) || [];
                         return (
                           <tr key={ep.id} className="border-b border-gray-200 dark:border-gray-800/50 hover:bg-gray-100/50 dark:hover:bg-gray-800/30">
@@ -579,13 +673,6 @@ export default function EndpointsPage() {
                             <td className="p-3 text-gray-700 dark:text-gray-400 truncate max-w-64">{ep.url}</td>
                             <td className="p-3 text-gray-600 dark:text-gray-500">{ep.authType || 'None'}</td>
                             <td className="p-3 text-gray-600 dark:text-gray-500">
-                              {schedule ? (
-                                <span className={`text-xs px-2 py-0.5 rounded border ${schedule.isEnabled ? 'bg-teal-100 text-teal-700 border-teal-200 dark:bg-teal-900/50 dark:text-teal-400 dark:border-teal-700' : 'bg-gray-100 text-gray-500 border-gray-200 dark:bg-gray-800 dark:text-gray-500 dark:border-gray-700'}`}>
-                                  {formatInterval(schedule.intervalSeconds)}
-                                </span>
-                              ) : ''}
-                            </td>
-                            <td className="p-3 text-gray-600 dark:text-gray-500">
                               {rules.length > 0 ? (
                                 <span className="text-xs px-2 py-0.5 rounded border bg-orange-100 text-orange-700 border-orange-200 dark:bg-orange-900/50 dark:text-orange-400 dark:border-orange-700">
                                   {rules.length} rule{rules.length !== 1 ? 's' : ''}
@@ -595,7 +682,6 @@ export default function EndpointsPage() {
                             <td className="p-3 flex gap-2">
                               <button onClick={() => handleRun(ep.id)} className="text-green-600 hover:text-green-700 dark:text-green-400 dark:hover:text-green-300 text-xs font-medium">Run</button>
                               <button onClick={() => handleEdit(ep)} className="text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 text-xs font-medium">Edit</button>
-                              <button onClick={() => handleOpenScheduleModal(ep)} className="text-teal-600 hover:text-teal-700 dark:text-teal-400 dark:hover:text-teal-300 text-xs font-medium">Schedule</button>
                               <button onClick={() => handleOpenValidationModal(ep)} className="text-orange-600 hover:text-orange-700 dark:text-orange-400 dark:hover:text-orange-300 text-xs font-medium">Validation</button>
                               <button onClick={() => handleDelete(ep.id)} className="text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 text-xs font-medium">Del</button>
                             </td>
@@ -612,11 +698,11 @@ export default function EndpointsPage() {
       )}
       <ConfirmDialog state={confirmState} />
 
-      {showScheduleModal && scheduleEndpoint && (
+      {showScheduleModal && scheduleCollection && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
           <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg shadow-xl p-6 w-96 max-w-[90vw]">
             <h3 className="text-base font-semibold text-gray-900 dark:text-gray-100 mb-4">
-              Schedule: {scheduleEndpoint.name}
+              Schedule: {scheduleCollection.name}
             </h3>
             <div className="space-y-4">
               <div>
@@ -639,15 +725,15 @@ export default function EndpointsPage() {
                 />
                 <label htmlFor="scheduleEnabled" className="text-sm text-gray-700 dark:text-gray-300">Enabled</label>
               </div>
-              {scheduleMap.get(scheduleEndpoint.id) && (
+              {scheduleMap.get(scheduleCollection.id) && (
                 <div className="text-xs text-gray-500 dark:text-gray-400 space-y-1">
-                  <div>Last Run: {scheduleMap.get(scheduleEndpoint.id)!.lastRunAt ? new Date(scheduleMap.get(scheduleEndpoint.id)!.lastRunAt!).toLocaleString() : 'Never'}</div>
-                  <div>Next Run: {scheduleMap.get(scheduleEndpoint.id)!.nextRunAt ? new Date(scheduleMap.get(scheduleEndpoint.id)!.nextRunAt!).toLocaleString() : 'Never'}</div>
+                  <div>Last Run: {scheduleMap.get(scheduleCollection.id)!.lastRunAt ? new Date(scheduleMap.get(scheduleCollection.id)!.lastRunAt!).toLocaleString() : 'Never'}</div>
+                  <div>Next Run: {scheduleMap.get(scheduleCollection.id)!.nextRunAt ? new Date(scheduleMap.get(scheduleCollection.id)!.nextRunAt!).toLocaleString() : 'Never'}</div>
                 </div>
               )}
               <div className="flex justify-end gap-2 pt-2">
                 <button
-                  onClick={() => { setShowScheduleModal(false); setScheduleEndpoint(null); }}
+                  onClick={() => { setShowScheduleModal(false); setScheduleCollection(null); }}
                   className="text-gray-700 dark:text-gray-400 text-sm px-3 py-1.5"
                 >
                   Cancel
@@ -656,7 +742,7 @@ export default function EndpointsPage() {
                   onClick={handleSaveSchedule}
                   className="bg-purple-700 hover:bg-purple-600 text-white text-sm px-4 py-1.5 rounded"
                 >
-                  {scheduleMap.get(scheduleEndpoint.id) ? 'Update' : 'Create'}
+                  {scheduleMap.get(scheduleCollection.id) ? 'Update' : 'Create'}
                 </button>
               </div>
             </div>

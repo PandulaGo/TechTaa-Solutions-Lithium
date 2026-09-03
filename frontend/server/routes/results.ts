@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import db from '../db';
+import { config } from '../config';
 import type { ApiResult } from '../types';
 
 const router = Router();
@@ -14,6 +15,7 @@ function rowToResult(row: any): ApiResult {
     responseBody: row.ResponseBody ?? null,
     requestBody: row.RequestBody ?? null,
     requestHeaders: row.RequestHeaders ?? null,
+    requestUrl: row.RequestUrl ?? null,
     isSuccess: !!row.IsSuccess,
     errorMessage: row.ErrorMessage ?? null,
     executedAt: row.ExecutedAt,
@@ -48,7 +50,7 @@ router.get('/', (req, res) => {
 
     const where = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
     const page = Math.max(1, parseInt(req.query.page as string) || 1);
-    const pageSize = Math.min(200, Math.max(1, parseInt(req.query.pageSize as string) || 50));
+    const pageSize = Math.min(config.Results.MaxPageSize, Math.max(1, parseInt(req.query.pageSize as string) || config.Results.DefaultPageSize));
     const offset = (page - 1) * pageSize;
 
     const rows = db.prepare(`

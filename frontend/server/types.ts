@@ -21,20 +21,19 @@ export interface ApiEndpoint {
   createdAt: string;
   updatedAt: string;
   collection?: Collection;
-  schedules?: Schedule[];
   validationRules?: ValidationRule[];
 }
 
 export interface Schedule {
   id: number;
-  apiEndpointId: number;
+  collectionId: number;
   isEnabled: boolean;
   intervalSeconds: number;
   lastRunAt: string | null;
   nextRunAt: string | null;
   createdAt: string;
   updatedAt: string;
-  apiEndpoint?: ApiEndpoint;
+  collection?: Collection;
 }
 
 export interface ApiResult {
@@ -76,6 +75,7 @@ export interface ExecutionResult {
   responseBody: string;
   requestBody?: string;
   requestHeaders?: string;
+  requestUrl?: string;
   isSuccess: boolean;
   errorMessage?: string;
 }
@@ -129,4 +129,32 @@ export interface EnvironmentVariable {
   value: string;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface CollectionRun {
+  id: number;
+  collectionId: number | null;
+  collectionName: string;
+  status: 'Running' | 'Completed' | 'Failed';
+  totalEndpoints: number;
+  completedCount: number;
+  successCount: number;
+  failCount: number;
+  isAdHoc: boolean;
+  startedAt: string;
+  completedAt: string | null;
+  results?: CollectionRunResult[];
+}
+
+export interface CollectionRunResult {
+  id: number;
+  collectionRunId: number;
+  apiEndpointId: number;
+  endpointName: string;
+  statusCode: number;
+  responseTimeMs: number;
+  isSuccess: boolean;
+  errorMessage: string | null;
+  status: 'Pending' | 'Running' | 'Completed' | 'Failed';
+  executedAt: string | null;
 }

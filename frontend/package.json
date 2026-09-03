@@ -4,7 +4,7 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "concurrently -n api,web -c blue,green \"npm run dev:api\" \"npm run dev:web\"",
+    "dev": "concurrently -n api,web -c blue,green -d 2000 \"npm run dev:api\" \"npm run dev:web\"",
     "dev:api": "tsx --watch server/index.ts",
     "dev:web": "vite",
     "build": "tsc -b && vite build",

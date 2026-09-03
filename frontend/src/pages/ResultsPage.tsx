@@ -25,7 +25,7 @@ export default function ResultsPage() {
   const scheduleMap = useMemo(() => {
     const map = new Map<number, Schedule>();
     for (const s of schedules) {
-      map.set(s.apiEndpointId, s);
+      map.set(s.collectionId, s);
     }
     return map;
   }, [schedules]);
@@ -109,7 +109,7 @@ export default function ResultsPage() {
           <tbody>
             {results.map(r => {
               const collection = collections.find(c => c.id === r.apiEndpoint?.collectionId);
-              const schedule = scheduleMap.get(r.apiEndpointId);
+              const schedule = r.apiEndpoint?.collectionId ? scheduleMap.get(r.apiEndpoint.collectionId) : undefined;
               const rules = validationMap.get(r.apiEndpointId) || [];
               return (
               <>
@@ -155,6 +155,58 @@ export default function ResultsPage() {
                   <tr key={`exp-${r.id}`} className="bg-gray-50 dark:bg-gray-900">
                     <td colSpan={10} className="p-4">
                       <div className="space-y-3">
+                        <div>
+                          <h4 className="text-xs font-semibold text-gray-700 dark:text-gray-400 mb-1">Request URL</h4>
+                          <pre className="bg-gray-50 dark:bg-gray-950 border border-gray-200 dark:border-gray-800 rounded p-3 text-xs text-gray-700 dark:text-gray-300 overflow-auto">
+                            <span className={`inline-block text-xs px-1.5 py-0.5 rounded border mr-2 ${r.apiEndpoint?.method === 'GET' ? 'bg-green-100 text-green-700 border-green-200 dark:bg-green-900/50 dark:text-green-400 dark:border-green-700' : r.apiEndpoint?.method === 'POST' ? 'bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-900/50 dark:text-blue-400 dark:border-blue-700' : r.apiEndpoint?.method === 'PUT' ? 'bg-yellow-100 text-yellow-700 border-yellow-200 dark:bg-yellow-900/50 dark:text-yellow-400 dark:border-yellow-700' : r.apiEndpoint?.method === 'DELETE' ? 'bg-red-100 text-red-700 border-red-200 dark:bg-red-900/50 dark:text-red-400 dark:border-red-700' : 'bg-gray-100 text-gray-700 border-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-700'}`}>
+                              {r.apiEndpoint?.method || '—'}
+                            </span>{r.requestUrl || r.apiEndpoint?.url || '—'}
+                          </pre>
+                        </div>
+                        {(() => {
+                          const template = r.apiEndpoint?.url || '';
+                          const resolved = r.requestUrl || '';
+                          if (!template || !resolved || template === resolved) return null;
+                          const varPattern = /\{\{([^}]+)\}\}/g;
+                          const vars: { name: string; value: string }[] = [];
+                          let match;
+                          const positions: { start: number; end: number }[] = [];
+                          while ((match = varPattern.exec(template)) !== null) {
+                            positions.push({ start: match.index, end: match.index + match[0].length });
+                          }
+                          if (positions.length === 0) return null;
+                          for (let i = 0; i < positions.length; i++) {
+                            const p = positions[i];
+                            const afterPrev = i === 0 ? 0 : positions[i - 1].end;
+                            const prefix = template.substring(afterPrev, p.start);
+                            const searchFrom = i === 0 ? 0 : resolved.indexOf(template.substring(afterPrev, positions[i - 1].end)) + prefix.length;
+                            const prefixIdx = resolved.indexOf(prefix, searchFrom - prefix.length);
+                            const valueStart = prefixIdx + prefix.length;
+                            const nextPrefix = i < positions.length - 1 ? template.substring(p.end, positions[i + 1].start) : '';
+                            const valueEnd = nextPrefix ? resolved.indexOf(nextPrefix, valueStart) : resolved.length;
+                            if (valueStart >= 0 && valueEnd > valueStart) {
+                              vars.push({ name: template.substring(p.start + 2, p.end - 2).trim(), value: resolved.substring(valueStart, valueEnd) });
+                            }
+                          }
+                          if (vars.length === 0) return null;
+                          return (
+                            <div>
+                              <h4 className="text-xs font-semibold text-green-700 dark:text-green-400 mb-1">Environment Variables Applied</h4>
+                              <div className="bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-800 rounded p-3 text-xs space-y-1">
+                                <div className="text-gray-500 dark:text-gray-500 mb-1">
+                                  <span className="font-medium">Template:</span> <code className="text-gray-700 dark:text-gray-300">{template}</code>
+                                </div>
+                                {vars.map((v, i) => (
+                                  <div key={i} className="flex gap-2">
+                                    <code className="text-amber-700 dark:text-amber-400 font-medium min-w-0 shrink-0">{'{{' + v.name + '}}'}</code>
+                                    <span className="text-gray-400">→</span>
+                                    <code className="text-green-700 dark:text-green-400 break-all">{v.value}</code>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          );
+                        })()}
                         <div>
                           <h4 className="text-xs font-semibold text-gray-700 dark:text-gray-400 mb-1">Response Headers</h4>
                           <pre className="bg-gray-50 dark:bg-gray-950 border border-gray-200 dark:border-gray-800 rounded p-3 text-xs text-gray-700 dark:text-gray-300 overflow-auto max-h-32">

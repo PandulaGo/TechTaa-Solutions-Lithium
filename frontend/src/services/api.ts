@@ -26,17 +26,23 @@ export const api = {
   deleteEndpoint: (id: number) =>
     request<void>(`/endpoints/${id}`, { method: 'DELETE' }),
 
+  batchDeleteEndpoints: (ids: number[]) =>
+    request<{ deleted: number }>('/endpoints/batch-delete', { method: 'POST', body: JSON.stringify({ ids }) }),
+
   runEndpoint: (id: number, environmentId?: number) =>
     request<any>(`/endpoints/${id}/run`, { method: 'POST', body: JSON.stringify({ environmentId }) }),
 
   bulkRun: (endpointIds: number[], environmentId?: number) =>
-    request<any[]>('/endpoints/bulk-run', { method: 'POST', body: JSON.stringify({ endpointIds, environmentId }) }),
+    request<{ runId: number }>('/endpoints/bulk-run', { method: 'POST', body: JSON.stringify({ endpointIds, environmentId }) }),
 
   exportEndpoints: (ids: number[]) =>
     request<any>(`/endpoints/export?ids=${ids.join(',')}`),
 
   importEndpoints: (data: any) =>
     request<any>('/endpoints/import', { method: 'POST', body: JSON.stringify(data) }),
+
+  importAndRun: (data: any, environmentId?: number) =>
+    request<{ runId: number; imported: number }>('/endpoints/import-and-run', { method: 'POST', body: JSON.stringify({ data, environmentId }) }),
 
   // Collections
   getCollections: () => request<any[]>('/collections'),
@@ -49,15 +55,15 @@ export const api = {
   updateCollection: (id: number, data: any) =>
     request<any>(`/collections/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
 
-  deleteCollection: (id: number) =>
-    request<void>(`/collections/${id}`, { method: 'DELETE' }),
+  deleteCollection: (id: number, cascade?: boolean) =>
+    request<void>(`/collections/${id}${cascade ? '?cascade=true' : ''}`, { method: 'DELETE' }),
 
   // Schedules
-  getSchedules: (endpointId?: number) =>
-    request<any[]>(`/schedules${endpointId ? `?endpointId=${endpointId}` : ''}`),
+  getSchedules: (collectionId?: number) =>
+    request<any[]>(`/schedules${collectionId ? `?collectionId=${collectionId}` : ''}`),
 
-  createSchedule: (endpointId: number, data: any) =>
-    request<any>(`/schedules?endpointId=${endpointId}`, { method: 'POST', body: JSON.stringify(data) }),
+  createSchedule: (collectionId: number, data: any) =>
+    request<any>(`/schedules?collectionId=${collectionId}`, { method: 'POST', body: JSON.stringify(data) }),
 
   updateSchedule: (id: number, data: any) =>
     request<any>(`/schedules/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
@@ -77,6 +83,32 @@ export const api = {
 
   deleteValidationRule: (id: number) =>
     request<void>(`/validation-rules/${id}`, { method: 'DELETE' }),
+
+  // Collection Runs
+  runCollection: (id: number, environmentId?: number) =>
+    request<{ runId: number }>(`/collections/${id}/run`, { method: 'POST', body: JSON.stringify({ environmentId }) }),
+
+  getCollectionRun: (id: number) =>
+    request<any>(`/collection-runs/${id}`),
+
+  getCollectionRuns: () =>
+    request<any[]>('/collection-runs'),
+
+  exportCollectionRunResponses: async (runId: number) => {
+    const res = await fetch(`${API_BASE}/collection-runs/${runId}/export-responses`);
+    const data = await res.json();
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `collection-run-${runId}-responses.json`;
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(() => {
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }, 100);
+  },
 
   // Results & Dashboard
   getResults: (params?: { collectionId?: number; endpointId?: number; page?: number; pageSize?: number; isSuccess?: boolean; from?: string; to?: string }) => {
@@ -124,4 +156,9 @@ export const api = {
 
   deleteEnvironmentVariable: (environmentId: number, varId: number) =>
     request<void>(`/environments/${environmentId}/variables/${varId}`, { method: 'DELETE' }),
+
+  // Scheduler
+  getSchedulerStatus: () => request<{ running: boolean }>('/scheduler/status'),
+  startScheduler: () => request<{ running: boolean }>('/scheduler/start', { method: 'POST' }),
+  stopScheduler: () => request<{ running: boolean }>('/scheduler/stop', { method: 'POST' }),
 };

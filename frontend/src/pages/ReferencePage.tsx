@@ -8,18 +8,57 @@ interface FieldDoc {
   options?: string[];
 }
 
-const fields: FieldDoc[] = [
+const collectionFields: FieldDoc[] = [
   {
     field: 'name',
     required: true,
     type: 'string',
-    description: 'Display name for this endpoint. Appears on Dashboard, Schedules, Results tables.',
+    description: 'Display name for the collection. Groups endpoints together on the Endpoints page.',
   },
   {
     field: 'description',
     required: false,
     type: 'string | null',
-    description: 'Optional notes about what this endpoint does. Shown in the endpoint form.',
+    description: 'Optional notes about this collection.',
+  },
+  {
+    field: 'schedule',
+    required: false,
+    type: 'object | null',
+    description: 'Periodic execution configuration for all endpoints in this collection. Set to null or omit to disable scheduling. When triggered, runs all endpoints in sequence and creates a tracked Collection Run visible on the Dashboard.',
+  },
+  {
+    field: 'schedule.intervalSeconds',
+    required: true,
+    type: 'number',
+    description: 'How often (in seconds) all endpoints in this collection should be executed. Minimum value is 1. Examples: 10 (every 10s), 60 (every 1 min), 3600 (every hour), 86400 (every day).',
+  },
+  {
+    field: 'schedule.isEnabled',
+    required: true,
+    type: 'boolean',
+    description: 'Whether the schedule is active on import. true = enabled (runs when scheduler is started), false = disabled.',
+  },
+  {
+    field: 'endpoints',
+    required: true,
+    type: 'array',
+    description: 'List of API endpoints belonging to this collection. At least one endpoint is required.',
+  },
+];
+
+const endpointFields: FieldDoc[] = [
+  {
+    field: 'name',
+    required: true,
+    type: 'string',
+    description: 'Display name for this endpoint. Appears on Dashboard, Results, and Run progress.',
+  },
+  {
+    field: 'description',
+    required: false,
+    type: 'string | null',
+    description: 'Optional notes about what this endpoint does.',
   },
   {
     field: 'method',
@@ -32,13 +71,13 @@ const fields: FieldDoc[] = [
     field: 'url',
     required: true,
     type: 'string',
-    description: 'Full target URL for the API call, including protocol (https://).',
+    description: 'Full target URL for the API call, including protocol (https://). Supports {{variable}} interpolation.',
   },
   {
     field: 'headers',
     required: false,
     type: 'string | null',
-    description: 'HTTP headers as a JSON string of key-value pairs. Must be a valid JSON object. Example: {"Authorization":"Bearer abc","Content-Type":"application/json"}. Each key becomes a request header.',
+    description: 'HTTP headers as a JSON string of key-value pairs. Must be a valid JSON object. Example: {"Authorization":"Bearer abc","Content-Type":"application/json"}.',
   },
   {
     field: 'body',
@@ -73,30 +112,6 @@ const fields: FieldDoc[] = [
     ],
   },
   {
-    field: 'collectionName',
-    required: false,
-    type: 'string | null',
-    description: 'Folder/group name for organizing endpoints on the Endpoints page. If the collection does not exist, it is auto-created during import.',
-  },
-  {
-    field: 'schedule',
-    required: false,
-    type: 'object | null',
-    description: 'Periodic execution configuration for this endpoint. Set to null to disable scheduling.',
-  },
-  {
-    field: 'schedule.intervalSeconds',
-    required: true,
-    type: 'number',
-    description: 'How often (in seconds) the endpoint should be executed. Minimum value is 1. Examples: 10 (every 10s), 60 (every 1 min), 3600 (every hour), 86400 (every day).',
-  },
-  {
-    field: 'schedule.isEnabled',
-    required: true,
-    type: 'boolean',
-    description: 'Whether the schedule is active on import. true = starts running immediately, false = paused.',
-  },
-  {
     field: 'validationRules',
     required: false,
     type: 'array',
@@ -117,7 +132,7 @@ const fields: FieldDoc[] = [
     options: [
       'StatusCode:    "200" or "201"',
       'ResponseTime:  "5000" (milliseconds)',
-      'JsonPath:     "$.data.id = 42" (path SPACE=SPACE expected)',
+      'JsonPath:      "$.data.id = 42" (path SPACE=SPACE expected)',
       'BodyContains:  "success" or "orderId"',
       'HeaderExists:  "Content-Type"',
     ],
@@ -151,6 +166,49 @@ const ruleTypeOptions: Record<string, string> = {
   HeaderExists: 'Checks if a response header is present (case-insensitive). Example: expectedValue="X-Request-Id" checks for that header.',
 };
 
+function FieldTable({ fields }: { fields: FieldDoc[] }) {
+  return (
+    <table className="w-full text-sm">
+      <thead>
+        <tr className="border-b border-gray-200 dark:border-gray-800 text-left text-gray-700 dark:text-gray-400 bg-white dark:bg-gray-900 sticky top-0">
+          <th className="p-3 w-48">Field</th>
+          <th className="p-3 w-16">Req</th>
+          <th className="p-3 w-24">Type</th>
+          <th className="p-3">Description</th>
+          <th className="p-3 w-72">Valid Options / Examples</th>
+        </tr>
+      </thead>
+      <tbody>
+        {fields.map((f) => (
+          <tr key={f.field} className="border-b border-gray-200 dark:border-gray-800/50 hover:bg-gray-100/50 dark:hover:bg-gray-800/30 align-top">
+            <td className="p-3 font-mono text-purple-600 dark:text-purple-400 text-xs">{f.field}</td>
+            <td className="p-3">
+              {f.required ? (
+                <span className="text-red-600 dark:text-red-400 text-xs font-bold">Yes</span>
+              ) : (
+                <span className="text-gray-500 dark:text-gray-600 text-xs">No</span>
+              )}
+            </td>
+            <td className="p-3 text-gray-600 dark:text-gray-500 text-xs">{f.type}</td>
+            <td className="p-3 text-gray-700 dark:text-gray-300">{f.description}</td>
+            <td className="p-3">
+              {f.options ? (
+                <ul className="space-y-0.5">
+                  {f.options.map((opt, i) => (
+                    <li key={i} className="text-xs font-mono text-gray-700 dark:text-gray-400">{opt}</li>
+                  ))}
+                </ul>
+              ) : (
+                <span className="text-gray-500 dark:text-gray-600 text-xs">—</span>
+              )}
+            </td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  );
+}
+
 export default function ReferencePage() {
   const [expandedType, setExpandedType] = useState<string | null>(null);
   const [showSample, setShowSample] = useState(false);
@@ -159,50 +217,54 @@ export default function ReferencePage() {
     <div className="space-y-6">
       <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">Import JSON Reference</h2>
       <p className="text-sm text-gray-700 dark:text-gray-400">
-        Every field in the import JSON is documented below. Use this as a reference when
-        building your own import files.
+        Every field in the import JSON is documented below. The format uses a collection-centric
+        structure — each collection contains its schedule configuration and a list of endpoints.
       </p>
 
-      {/* Field reference table */}
+      {/* Top-level structure */}
+      <div className="bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+        <h3 className="text-sm font-semibold text-blue-800 dark:text-blue-300 mb-2">JSON Structure Overview</h3>
+        <pre className="text-xs text-blue-700 dark:text-blue-400 font-mono whitespace-pre leading-relaxed">{`{
+  "collections": [
+    {
+      "name": "Collection Name",          ← required
+      "description": "...",               ← optional
+      "schedule": {                        ← optional (null or omit to disable)
+        "intervalSeconds": 60,             ← required within schedule
+        "isEnabled": true                  ← required within schedule
+      },
+      "endpoints": [                       ← required (at least one)
+        {
+          "name": "...",                   ← required
+          "method": "GET",                 ← required
+          "url": "...",                    ← required
+          "headers": "...",                ← optional
+          "body": "...",                   ← optional
+          "bodyType": "...",               ← optional
+          "authType": "None",              ← optional
+          "authConfig": "...",             ← optional
+          "validationRules": [...]         ← optional
+        }
+      ]
+    }
+  ]
+}`}</pre>
+      </div>
+
+      {/* Collection-level fields */}
       <div className="bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-800 overflow-hidden">
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="border-b border-gray-200 dark:border-gray-800 text-left text-gray-700 dark:text-gray-400 bg-white dark:bg-gray-900 sticky top-0">
-              <th className="p-3 w-48">Field</th>
-              <th className="p-3 w-16">Req</th>
-              <th className="p-3 w-24">Type</th>
-              <th className="p-3">Description</th>
-              <th className="p-3 w-72">Valid Options / Examples</th>
-            </tr>
-          </thead>
-          <tbody>
-            {fields.map((f) => (
-              <tr key={f.field} className="border-b border-gray-200 dark:border-gray-800/50 hover:bg-gray-100/50 dark:hover:bg-gray-800/30 align-top">
-                <td className="p-3 font-mono text-purple-600 dark:text-purple-400 text-xs">{f.field}</td>
-                <td className="p-3">
-                  {f.required ? (
-                    <span className="text-red-600 dark:text-red-400 text-xs font-bold">Yes</span>
-                  ) : (
-                    <span className="text-gray-500 dark:text-gray-600 text-xs">No</span>
-                  )}
-                </td>
-                <td className="p-3 text-gray-600 dark:text-gray-500 text-xs">{f.type}</td>
-                <td className="p-3 text-gray-700 dark:text-gray-300">{f.description}</td>
-                <td className="p-3">
-                  {f.options ? (
-                    <ul className="space-y-0.5">
-                      {f.options.map((opt, i) => (
-                        <li key={i} className="text-xs font-mono text-gray-700 dark:text-gray-400">{opt}</li>
-                      ))}
-                    </ul>
-                  ) : (
-                    <span className="text-gray-500 dark:text-gray-600 text-xs">—</span>
-                  )}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        <div className="px-4 py-3 border-b border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-950">
+          <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300">Collection Fields</h3>
+        </div>
+        <FieldTable fields={collectionFields} />
+      </div>
+
+      {/* Endpoint-level fields */}
+      <div className="bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-800 overflow-hidden">
+        <div className="px-4 py-3 border-b border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-950">
+          <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300">Endpoint Fields <span className="text-gray-500 dark:text-gray-600 font-normal">— nested inside collections[].endpoints[]</span></h3>
+        </div>
+        <FieldTable fields={endpointFields} />
       </div>
 
       {/* Rule types deep dive */}
@@ -318,75 +380,115 @@ export default function ReferencePage() {
         {showSample && (
           <pre className="bg-gray-50 dark:bg-gray-950 border border-gray-300 dark:border-gray-700 rounded p-4 text-xs text-gray-700 dark:text-gray-300 overflow-auto max-h-[500px] whitespace-pre leading-relaxed mt-3">
 {`{
-  "endpoints": [
+  "collections": [
     {
-      "name": "Get Users",
-      "description": "Fetches list of users",
-      "method": "GET",
-      "url": "https://api.example.com/v1/users",
-      "headers": "{\\"Authorization\\":\\"Bearer abc123\\",\\"Accept\\":\\"application/json\\"}",
-      "body": null,
-      "bodyType": null,
-      "authType": "Bearer",
-      "authConfig": "{\\"token\\":\\"abc123\\"}",
-      "collectionName": "User Service",
+      "name": "User Service",
+      "description": "User management endpoints",
       "schedule": {
         "intervalSeconds": 300,
         "isEnabled": true
       },
-      "validationRules": [
+      "endpoints": [
         {
-          "ruleType": "StatusCode",
-          "expectedValue": "200",
-          "comparisonType": "Equals",
-          "order": 1,
-          "isEnabled": true
+          "name": "Get Users",
+          "description": "Fetches list of users",
+          "method": "GET",
+          "url": "https://api.example.com/v1/users",
+          "headers": "{\\"Authorization\\":\\"Bearer abc123\\",\\"Accept\\":\\"application/json\\"}",
+          "body": null,
+          "bodyType": null,
+          "authType": "Bearer",
+          "authConfig": "{\\"token\\":\\"abc123\\"}",
+          "validationRules": [
+            {
+              "ruleType": "StatusCode",
+              "expectedValue": "200",
+              "comparisonType": "Equals",
+              "order": 1,
+              "isEnabled": true
+            },
+            {
+              "ruleType": "ResponseTime",
+              "expectedValue": "5000",
+              "comparisonType": "LessThan",
+              "order": 2,
+              "isEnabled": true
+            },
+            {
+              "ruleType": "JsonPath",
+              "expectedValue": "$.total > 0",
+              "comparisonType": "Equals",
+              "order": 3,
+              "isEnabled": true
+            }
+          ]
         },
         {
-          "ruleType": "ResponseTime",
-          "expectedValue": "5000",
-          "comparisonType": "LessThan",
-          "order": 2,
-          "isEnabled": true
-        },
-        {
-          "ruleType": "JsonPath",
-          "expectedValue": "$.total > 0",
-          "comparisonType": "Equals",
-          "order": 3,
-          "isEnabled": true
+          "name": "Get User By ID",
+          "description": "Fetches a single user",
+          "method": "GET",
+          "url": "https://api.example.com/v1/users/1",
+          "headers": "{\\"Authorization\\":\\"Bearer abc123\\"}",
+          "body": null,
+          "bodyType": null,
+          "authType": "None",
+          "authConfig": null,
+          "validationRules": []
         }
       ]
     },
     {
-      "name": "Create Order",
-      "description": "Creates a new order",
-      "method": "POST",
-      "url": "https://api.example.com/v1/orders",
-      "headers": "{\\"Content-Type\\":\\"application/json\\"}",
-      "body": "{\\"customerId\\":42,\\"items\\":[{\\"productId\\":1,\\"quantity\\":2}]}",
-      "bodyType": "json",
-      "authType": "Bearer",
-      "authConfig": "{\\"token\\":\\"abc123\\"}",
-      "collectionName": "Order Service",
+      "name": "Order Service",
+      "description": "Order processing endpoints",
       "schedule": {
         "intervalSeconds": 3600,
         "isEnabled": true
       },
-      "validationRules": [
+      "endpoints": [
         {
-          "ruleType": "StatusCode",
-          "expectedValue": "201",
-          "comparisonType": "Equals",
-          "order": 1,
-          "isEnabled": true
-        },
+          "name": "Create Order",
+          "description": "Creates a new order",
+          "method": "POST",
+          "url": "https://api.example.com/v1/orders",
+          "headers": "{\\"Content-Type\\":\\"application/json\\"}",
+          "body": "{\\"customerId\\":42,\\"items\\":[{\\"productId\\":1,\\"quantity\\":2}]}",
+          "bodyType": "json",
+          "authType": "Bearer",
+          "authConfig": "{\\"token\\":\\"abc123\\"}",
+          "validationRules": [
+            {
+              "ruleType": "StatusCode",
+              "expectedValue": "201",
+              "comparisonType": "Equals",
+              "order": 1,
+              "isEnabled": true
+            },
+            {
+              "ruleType": "BodyContains",
+              "expectedValue": "orderId",
+              "comparisonType": "Contains",
+              "order": 2,
+              "isEnabled": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Health Checks",
+      "description": "No schedule — run manually or on-demand only",
+      "schedule": null,
+      "endpoints": [
         {
-          "ruleType": "BodyContains",
-          "expectedValue": "orderId",
-          "comparisonType": "Contains",
-          "order": 2,
-          "isEnabled": true
+          "name": "Health Ping",
+          "method": "GET",
+          "url": "https://api.example.com/health",
+          "headers": null,
+          "body": null,
+          "bodyType": null,
+          "authType": "None",
+          "authConfig": null,
+          "validationRules": []
         }
       ]
     }

@@ -1,11 +1,12 @@
 import { Router } from 'express';
 import db from '../db';
+import { startCollectionRun } from '../services/collectionRunner';
 import type { Collection } from '../types';
 
 const router = Router();
 
 function getNow(): string {
-  return new Date().toISOString().replace('T', ' ').substring(0, 19);
+  return new Date().toISOString().replace('T', ' ').substring(0, 19) + 'Z';
 }
 
 function rowToCollection(row: any): Collection {
@@ -90,9 +91,55 @@ router.put('/:id', (req, res) => {
 
 router.delete('/:id', (req, res) => {
   try {
-    const result = db.prepare('DELETE FROM Collections WHERE Id = ?').run(Number(req.params.id));
-    if (result.changes === 0) return res.status(404).json({ error: 'Not found' });
+    const id = Number(req.params.id);
+    const existing = db.prepare('SELECT * FROM Collections WHERE Id = ?').get(id) as any;
+    if (!existing) return res.status(404).json({ error: 'Not found' });
+
+    const cascade = req.query.cascade === 'true';
+    if (cascade) {
+      db.prepare('DELETE FROM Schedules WHERE CollectionId = ?').run(id);
+      db.prepare('DELETE FROM ValidationRules WHERE ApiEndpointId IN (SELECT Id FROM ApiEndpoints WHERE CollectionId = ?)').run(id);
+      db.prepare('DELETE FROM ApiResults WHERE ApiEndpointId IN (SELECT Id FROM ApiEndpoints WHERE CollectionId = ?)').run(id);
+      db.prepare('DELETE FROM ApiEndpoints WHERE CollectionId = ?').run(id);
+      db.prepare('DELETE FROM CollectionRuns WHERE Id NOT IN (SELECT CollectionRunId FROM CollectionRunResults)').run();
+    }
+
+    db.prepare('DELETE FROM Collections WHERE Id = ?').run(id);
     res.status(204).send();
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+router.post('/:id/run', (req, res) => {
+  try {
+    const collection = db.prepare('SELECT * FROM Collections WHERE Id = ?').get(Number(req.params.id)) as any;
+    if (!collection) return res.status(404).json({ error: 'Not found' });
+
+    const endpoints = db.prepare('SELECT * FROM ApiEndpoints WHERE CollectionId = ?').all(collection.Id) as any[];
+    if (endpoints.length === 0) return res.status(400).json({ error: 'Collection has no endpoints' });
+
+    const environmentId = req.body?.environmentId ?? null;
+    const now = getNow();
+
+    const runResult = db.prepare(`
+      INSERT INTO CollectionRuns (CollectionId, CollectionName, Status, TotalEndpoints, StartedAt)
+      VALUES (?, ?, 'Running', ?, ?)
+    `).run(collection.Id, collection.Name, endpoints.length, now);
+    const runId = runResult.lastInsertRowid as number;
+
+    const insertResult = db.prepare(`
+      INSERT INTO CollectionRunResults (CollectionRunId, ApiEndpointId, EndpointName, Status)
+      VALUES (?, ?, ?, 'Pending')
+    `);
+    for (const ep of endpoints) {
+      insertResult.run(runId, ep.Id, ep.Name);
+    }
+
+    const endpointIds = endpoints.map(e => e.Id);
+    startCollectionRun(runId, endpointIds, environmentId);
+
+    res.json({ runId });
   } catch (err: any) {
     res.status(500).json({ error: err.message });
   }
